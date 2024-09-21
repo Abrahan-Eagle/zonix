@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import './../../login/presentation/login_page.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -64,58 +65,39 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         centerTitle: false,
-      ),
-      endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color.fromARGB(255, 93, 0, 255),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _incrementCounter,
+          ),
+          PopupMenuButton<int>(
+            onSelected: (value) {
+              // Acciones según el valor seleccionado
+              if (value == 1) {
+                // Acción para el botón editar
+              } else if (value == 2) {
+                // Acción para el botón compartir
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 1,
+                child: Text("Editar"),
               ),
-              child: Text(
-                'ZONIX DASHBOARD',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
+              const PopupMenuItem(
+                value: 2,
+                child: Text("Compartir"),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.login_outlined),
-              title: const Text('LogIn'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Configuraciones'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
+
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
+            const Text('You have pushed the button this many times:'),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -123,11 +105,34 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+
+      floatingActionButtonLocation: ExpandableFab.location,
+      floatingActionButton: ExpandableFab(
+        distance: 70.0,
+        type: ExpandableFabType.fan,
+        children: [
+          FloatingActionButton.small(
+            heroTag: null,
+            child: const Icon(Icons.add),
+            onPressed: _incrementCounter,
+          ),
+          FloatingActionButton.small(
+            heroTag: null,
+            child: const Icon(Icons.edit),
+            onPressed: () {
+              // Acción para el botón de editar
+            },
+          ),
+          FloatingActionButton.small(
+            heroTag: null,
+            child: const Icon(Icons.share),
+            onPressed: () {
+              // Acción para el botón de compartir
+            },
+          ),
+        ],
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
