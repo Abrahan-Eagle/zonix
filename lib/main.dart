@@ -4,10 +4,8 @@ import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './features/config/theme.dart';
-
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:zonix/features/services/auth_service.dart';
-import 'package:sign_in_button/sign_in_button.dart';
+import 'package:zonix/features/services/auth/api_service.dart';
+import 'package:zonix/features/services/auth/google_sign_in_service.dart';
 
 final logger = Logger();
 
@@ -51,10 +49,10 @@ class MyApp extends StatelessWidget {
 class MainRouter extends StatefulWidget {
   const MainRouter({super.key});
   @override
-  _MainRouterState createState() => _MainRouterState();
+  MainRouterState createState() => MainRouterState();
 }
 
-class _MainRouterState extends State<MainRouter> {
+class MainRouterState extends State<MainRouter> {
   int _selectedLevel = 0; // Nivel seleccionado.
   int _bottomNavIndex = 0; // Índice del BottomNavigationBar.
   bool isFabExpanded = false; // Estado del FAB expandido.
@@ -197,7 +195,7 @@ class _MainRouterState extends State<MainRouter> {
         context,
         MaterialPageRoute(
             builder: (context) =>
-                const UserProfile()), // Navega a la pantalla de perfil
+                const SignInScreen()), // Navega a la pantalla de perfil
       );
     } else {
       setState(() {
@@ -442,118 +440,45 @@ class _MainRouterState extends State<MainRouter> {
   }
 }
 
-class UserProfile extends StatefulWidget {
-  const UserProfile({super.key});
+
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
+
   @override
-  _UserProfileState createState() => _UserProfileState();
+  SignInScreenState createState() => SignInScreenState();
 }
 
-class _UserProfileState extends State<UserProfile> {
-  final AuthService _authService = AuthService();
-  GoogleSignInAccount? _currentUser;
-  bool _isAuthorized = false;
-  String _contactText = '';
+class SignInScreenState extends State<SignInScreen> {
+  final GoogleSignInService googleSignInService = GoogleSignInService();
+  final ApiService _apiService = ApiService();
 
-  @override
-  void initState() {
-    super.initState();
-    _authService.onCurrentUserChanged
-        .listen((GoogleSignInAccount? account) async {
-      bool isAuthorized = account != null;
-      if (isAuthorized) {
-        setState(() {
-          _currentUser = account;
-          _isAuthorized = isAuthorized;
-        });
-        _loadContacts(account!);
-      }
-    });
-    _authService.signInSilently();
-  }
+  Future<void> _handleSignIn() async {
+    final result = await googleSignInService.signInWithGoogle();
+    if (result != null) {
+      await _apiService.sendTokenToBackend(result['token']);
+      // Puedes acceder a los datos del perfil aquí, si lo necesitas
+      var profile = result['profile'];
 
-  Future<void> _loadContacts(GoogleSignInAccount user) async {
-    try {
-      setState(() {
-        _contactText = 'Loading contact info...';
-      });
-      final data = await _authService.getContact(user);
-      final String? namedContact = _pickFirstNamedContact(data);
-      setState(() {
-        _contactText = namedContact != null
-            ? 'I see you know $namedContact!'
-            : 'No contacts to display.';
-      });
-    } catch (e) {
-      setState(() {
-        _contactText = 'Failed to load contacts.';
-      });
+      logger.i(profile);
+      // Procesar el perfil según sea necesario
     }
-  }
-
-  String? _pickFirstNamedContact(Map<String, dynamic> data) {
-    final List<dynamic>? connections = data['connections'] as List<dynamic>?;
-    final Map<String, dynamic>? contact = connections?.firstWhere(
-      (dynamic contact) => (contact as Map<Object?, dynamic>)['names'] != null,
-      orElse: () => null,
-    ) as Map<String, dynamic>?;
-    if (contact != null) {
-      final List<dynamic> names = contact['names'] as List<dynamic>;
-      final Map<String, dynamic>? name = names.firstWhere(
-        (dynamic name) =>
-            (name as Map<Object?, dynamic>)['displayName'] != null,
-        orElse: () => null,
-      ) as Map<String, dynamic>?;
-      if (name != null) {
-        return name['displayName'] as String?;
-      }
-    }
-    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInAccount? user = _currentUser;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil de Usuario'),
-        centerTitle: false,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 20),
-            if (user != null) ...[
-              ListTile(
-                leading: GoogleUserCircleAvatar(identity: user),
-                title: Text(user.displayName ?? ''),
-                subtitle: Text(user.email),
-              ),
-              const Text('Has iniciado sesión exitosamente.'),
-              if (_isAuthorized) Text(_contactText),
-              ElevatedButton(
-                onPressed: _authService.handleSignOut,
-                child: const Text('Cerrar sesión'),
-              ),
-            ] else ...[
-              SignInButton(
-                Buttons.google,
-                text: 'Iniciar sesión con Google',
-                onPressed: () {
-                  _authService.handleSignIn(); // Inicia sesión con Google
-                },
-              ),
-            ],
-          ],
+      appBar: AppBar(title: const Text('Google Sign-In')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: _handleSignIn,
+          child: const Text('Iniciar sesión con Google'),
         ),
       ),
     );
   }
 }
 
-// Aquí puedes agregar las clases para cada nivel (LevelGas, LevelDolar, etc.)
+
 class LevelGas extends StatelessWidget {
   const LevelGas({super.key});
 
