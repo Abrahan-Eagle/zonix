@@ -28,37 +28,45 @@ class GoogleSignInService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<Map<String, dynamic>?> signInWithGoogle() async {
-    try {
-      final user = await _googleSignIn.signIn();
-      if (user == null) {
-        logger.i('Inicio de sesión cancelado');
-        return null;
-      }
-
-      final googleAuth = await user.authentication;
-
-      // Obtener datos del perfil del usuario
-      final profileResponse = await http.get(
-        Uri.parse('https://www.googleapis.com/oauth2/v3/userinfo'),
-        headers: {
-          'Authorization': 'Bearer ${googleAuth.accessToken}',
-        },
-      );
-
-      if (profileResponse.statusCode == 200) {
-        final profileData = jsonDecode(profileResponse.body);
-        logger.i('Datos del perfil de usuario: ${jsonEncode(profileData)}');
-        return {
-          'token': googleAuth.idToken,
-          'profile': profileData,
-        };
-      } else {
-        logger.i('Error al obtener los datos del perfil');
-        return null;
-      }
-    } catch (error) {
-      logger.i('Error: $error');
+  try {
+    final user = await _googleSignIn.signIn();
+    if (user == null) {
+      logger.i('Inicio de sesión cancelado');
       return null;
     }
+
+    final googleAuth = await user.authentication;
+
+    // Usar accessToken si no tienes el idToken
+    final accessToken = googleAuth.accessToken;
+    if (accessToken == null) {
+      logger.e('Error: el accessToken es null');
+      return null;
+    }
+
+    // Obtener datos del perfil del usuario
+    final profileResponse = await http.get(
+      Uri.parse('https://www.googleapis.com/oauth2/v3/userinfo'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (profileResponse.statusCode == 200) {
+      final profileData = jsonDecode(profileResponse.body);
+      logger.i('Datos del perfil de usuario: ${jsonEncode(profileData)}');
+      return {
+        'token': accessToken,
+        'profile': profileData,
+      };
+    } else {
+      logger.i('Error al obtener los datos del perfil');
+      return null;
+    }
+  } catch (error) {
+    logger.e('Error: $error');
+    return null;
   }
+}
+
 }

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './features/config/theme.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/features/services/auth/google_sign_in_service.dart';
+import 'dart:convert';
 
 final logger = Logger();
 
@@ -453,14 +454,22 @@ class SignInScreenState extends State<SignInScreen> {
   final ApiService _apiService = ApiService();
 
   Future<void> _handleSignIn() async {
+    
     final result = await googleSignInService.signInWithGoogle();
+    
     if (result != null) {
-      await _apiService.sendTokenToBackend(result['token']);
-      // Puedes acceder a los datos del perfil aquí, si lo necesitas
-      var profile = result['profile'];
+      
+      dynamic processedResult = result; // Nueva variable para procesar el result
+      processedResult = jsonEncode(result);
 
-      logger.i(profile);
-      // Procesar el perfil según sea necesario
+      await _apiService.sendTokenToBackend(processedResult);
+      // Puedes acceder a los datos del perfil aquí, si lo necesitas
+      
+      // var profile = result['profile'];
+      // var token = result['token'];
+     
+      // logger.i(token +    '/++++/'  +  profile);
+
     }
   }
 
