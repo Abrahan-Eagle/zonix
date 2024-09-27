@@ -37,49 +37,24 @@ void initialization() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
- 
-Future<bool> _isAuthenticated() async {
-  final token = await _storage.read(key: 'token');
-  final expiryDate = await _storage.read(key: 'expiryDate');
-  
-  if (token != null && expiryDate != null) {
-    final now = DateTime.now();
-    final expiry = DateTime.parse(expiryDate);
-    
-    if (expiry.isAfter(now)) {
-      // Token aún válido, continuar
-      return true;
-    } else {
-      // Eliminar token si está expirado
-      await _storage.deleteAll();
+  Future<bool> _isAuthenticated() async {
+    final token = await _storage.read(key: 'token');
+    final expiryDate = await _storage.read(key: 'expiryDate');
+
+    if (token != null && expiryDate != null) {
+      final now = DateTime.now();
+      final expiry = DateTime.parse(expiryDate);
+
+      if (expiry.isAfter(now)) {
+        // Token aún válido, continuar
+        return true;
+      } else {
+        // Eliminar token si está expirado
+        await _storage.deleteAll();
+      }
     }
+    return true; // Token no válido o expirado
   }
-  return false; // Token no válido o expirado
-}
-
-
-
-  // Verifica si el usuario está autenticado
-  // Future<bool> _isAuthenticated() async {
-  //   final token = await _storage.read(key: 'token');
-  //   if (token != null) {
-  //     final response = await http.get(
-  //       Uri.parse(
-  //           'http://127.0.0.1:8000/api/auth/user'), // Verifica si el token es válido
-  //       headers: {
-  //         'Authorization': 'Bearer $token',
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       return true; // Token válido
-  //     } else {
-  //       await _storage.delete(key: 'token'); // Token inválido, eliminarlo
-  //     }
-  //   }
-  //   return false; // Si no hay token o es inválido
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +92,6 @@ class MainRouterState extends State<MainRouter> {
   int _bottomNavIndex = 0;
   bool isFabExpanded = false;
 
-
   // Obtiene detalles del usuario autenticado
   Future<Map<String, dynamic>> _getUserDetails() async {
     final token = await _storage.read(key: 'token');
@@ -129,23 +103,16 @@ class MainRouterState extends State<MainRouter> {
       },
     );
 
-
-     if (response.statusCode == 200) {
-    final userDetails = jsonDecode(response.body);
-    final role = await _storage.read(key: 'role'); // Obtén el rol aquí
-    return {
-      'user': userDetails,
-      'role': role,
-    };
-  } else {
-    throw Exception('Error al obtener detalles del usuario');
-  }
-
-    // if (response.statusCode == 200) {
-    //   return jsonDecode(response.body);
-    // } else {
-    //   throw Exception('Error al obtener detalles del usuario');
-    // }
+    if (response.statusCode == 200) {
+      final userDetails = jsonDecode(response.body);
+      final role = await _storage.read(key: 'role'); // Obtén el rol aquí
+      return {
+        'user': userDetails,
+        'role': role,
+      };
+    } else {
+      throw Exception('Error al obtener detalles del usuario');
+    }
   }
 
   @override
@@ -177,7 +144,7 @@ class MainRouterState extends State<MainRouter> {
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'a'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda'),
+          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Configuración'),
         ];
       case 1:
         return const [
@@ -191,14 +158,14 @@ class MainRouterState extends State<MainRouter> {
           BottomNavigationBarItem(
               icon: Icon(Icons.business), label: 'Negocios'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'c'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Configuración'),
         ];
       // Agrega más casos según sea necesario
       default:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'd'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda'),
+          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Configuración'),
         ];
     }
   }
@@ -288,9 +255,7 @@ class MainRouterState extends State<MainRouter> {
                 await _handleLogout(); // Llama a la función de logout
               },
             ),
-          ]
-
-          ),
+          ]),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _getUserDetails(),
         builder: (context, snapshot) {
@@ -299,30 +264,16 @@ class MainRouterState extends State<MainRouter> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            // final user = snapshot.data!;
-            // final role = user['role'];
-                    
-                    
-          // final user = snapshot.data!; // Usa todos los datos de la respuesta
-          // final role = user['role'] ?? 'guest'; // Establecer un valor por defecto
-          // logger.i('xxxxxxxxxxxxxxxx $user');
+            final userData =
+                snapshot.data!; // Usa todos los datos de la respuesta
+            final user = userData['user']; // Accede al objeto user
+            final role =
+                user['role'] ?? 'guest'; // Obtener el rol del objeto user
 
-
-
-
-
-
- final userData = snapshot.data!; // Usa todos los datos de la respuesta
-      final user = userData['user']; // Accede al objeto user
-      final role = user['role'] ?? 'guest'; // Obtener el rol del objeto user
-
-      // Aquí puedes usar la variable user si necesitas acceder a más datos
-      logger.i('User details: $user'); // Imprime todos los datos del usuario
-      logger.i('Role: $role'); // Imprime el rol del usuario
-
-
-
-
+            // Aquí puedes usar la variable user si necesitas acceder a más datos
+            logger.i(
+                'User details: $user'); // Imprime todos los datos del usuario
+            logger.i('Role: $role'); // Imprime el rol del usuario
 
             // Mostrar el nivel y botones del BottomNavigationBar según el rol del usuario
             return Column(
@@ -377,98 +328,31 @@ class MainRouterState extends State<MainRouter> {
     );
   }
 
-
-
   Future<void> _handleLogout() async {
-  try {
-    final token = await _storage.read(key: 'token');
-    if (token != null) {
-      final response = await _apiService.logout(token);
-      if (response.statusCode == 200) {
-        // Elimina todos los datos
-        await _storage.deleteAll();
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token != null) {
+        final response = await _apiService.logout(token);
+        if (response.statusCode == 200) {
+          // Elimina todos los datos
+          await _storage.deleteAll();
 
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sesión cerrada correctamente')),
-        );
-      } else {
-        throw Exception('Error en la API al cerrar sesión');
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sesión cerrada correctamente')),
+          );
+        } else {
+          throw Exception('Error en la API al cerrar sesión');
+        }
       }
+    } catch (e) {
+      logger.e('Error al cerrar sesión: $e');
     }
-  } catch (e) {
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(content: Text('Error al cerrar sesión: $e')),
-    // );
-    // if (!mounted) return;
-
-    // scaffold.showSnackBar(
-    //     SnackBar(content: Text('Error al cerrar sesión: $e')),
-    //   );
-
-
   }
-}
-
-
-
-  // Future<void> _handleLogout() async {
-  //   // Mostrar un indicador de carga mientras el logout está en proceso.
-  //   final scaffold = ScaffoldMessenger.of(context);
-  //   scaffold.showSnackBar(
-  //     const SnackBar(
-  //       content: Text('Cerrando sesión...'),
-  //       duration: Duration(
-  //           seconds:
-  //               2), // Tiempo para mostrar el indicador de cierre de sesión.
-  //     ),
-  //   );
-
-  //   try {
-  //     // Leer el token del almacenamiento seguro.
-  //     final token = await _storage.read(key: 'token');
-
-  //     if (token != null) {
-  //       // Llamar a la API para cerrar sesión.
-  //       final response = await _apiService.logout(token);
-
-  //       if (response.statusCode == 200) {
-  //         // Si el logout es exitoso, eliminar el token localmente.
-  //         await _storage.delete(key: 'token');
-
-  //         // Verificar si el widget sigue montado antes de usar el contexto.
-  //         if (!mounted) return;
-
-  //         // Redirigir al usuario a la pantalla de inicio de sesión.
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => const SignInScreen()),
-  //         );
-
-  //         // Mostrar un mensaje de éxito.
-  //         scaffold.showSnackBar(
-  //           const SnackBar(content: Text('Sesión cerrada correctamente')),
-  //         );
-  //       } else {
-  //         throw Exception('Error en la API al cerrar sesión');
-  //       }
-  //     } else {
-  //       throw Exception('Token no encontrado');
-  //     }
-  //   } catch (e) {
-  //     // Verificar si el widget sigue montado antes de mostrar el error.
-  //     if (!mounted) return;
-
-  //     // Mostrar un mensaje de error si ocurre alguna excepción.
-  //     scaffold.showSnackBar(
-  //       SnackBar(content: Text('Error al cerrar sesión: $e')),
-  //     );
-  //   }
-  // }
 }
 
 // Ejemplos de páginas para los roles de usuario
@@ -506,42 +390,38 @@ class SignInScreen extends StatefulWidget {
   SignInScreenState createState() => SignInScreenState();
 }
 
-
-
 class SignInScreenState extends State<SignInScreen> {
   final GoogleSignInService googleSignInService = GoogleSignInService();
   final ApiService _apiService = ApiService();
-  // final FlutterSecureStorage _storage = FlutterSecureStorage(); // Asegúrate de tener esta inicialización
 
   Future<void> _handleSignIn() async {
-  final result = await googleSignInService.signInWithGoogle();
+    final result = await googleSignInService.signInWithGoogle();
 
-  if (result != null) {
-    final processedResult = jsonEncode(result);
+    if (result != null) {
+      final processedResult = jsonEncode(result);
 
-    // Aquí se espera que sendTokenToBackend retorne un objeto Response
-    final response = await _apiService.sendTokenToBackend(processedResult);
+      // Aquí se espera que sendTokenToBackend retorne un objeto Response
+      final response = await _apiService.sendTokenToBackend(processedResult);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await _storage.write(key: 'token', value: data['token']);
-      await _storage.write(key: 'role', value: data['role']); // Guarda el rol
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _storage.write(key: 'token', value: data['token']);
+        await _storage.write(key: 'role', value: data['role']); // Guarda el rol
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainRouter()),
-      );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainRouter()),
+        );
+      } else {
+        // Manejo de error para respuesta no exitosa
+        logger.e('Error: ${response.statusCode}');
+      }
     } else {
-      // Manejo de error para respuesta no exitosa
-      print('Error: ${response.statusCode}');
+      logger.e('Error al iniciar sesión con Google');
     }
-  } else {
-    print('Error al iniciar sesión con Google');
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -550,62 +430,9 @@ class SignInScreenState extends State<SignInScreen> {
       body: Center(
         child: ElevatedButton(
           onPressed: _handleSignIn,
-          child: const Text('Iniciar sesión con Google'),
+          child: const Text('Iniciar sesión con Googlexxxxxxxxxxxxx'),
         ),
       ),
     );
   }
 }
-
-
-
-
-
-// class SignInScreenState extends State<SignInScreen> {
-//   final GoogleSignInService googleSignInService = GoogleSignInService();
-//   final ApiService _apiService = ApiService();
-
-//   Future<void> _handleSignIn() async {
-//     final result = await googleSignInService.signInWithGoogle();
-
-//     if (result != null) {
-//       dynamic processedResult =
-//           result; // Nueva variable para procesar el result
-//       processedResult = jsonEncode(result);
-
-//       await _apiService.sendTokenToBackend(processedResult);
-
-//       if (response.statusCode == 200) {
-//     final data = jsonDecode(response.body);
-//     await _storage.write(key: 'token', value: data['token']);
-//     await _storage.write(key: 'role', value: data['role']); // Guarda el rol
-// }
-
-//       if (!mounted) return;
-
-//     Navigator.pushReplacement(
-//       context,
-//       MaterialPageRoute(builder: (context) => const MainRouter()), // Redirige a la pantalla principal
-//     );
-//       // Puedes acceder a los datos del perfil aquí, si lo necesitas
-
-//       // var profile = result['profile'];
-//       // var token = result['token'];
-
-//       // logger.i(token +    '/++++/'  +  profile);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Google Sign-In')),
-//       body: Center(
-//         child: ElevatedButton(
-//           onPressed: _handleSignIn,
-//           child: const Text('Iniciar sesión con Google'),
-//         ),
-//       ),
-//     );
-//   }
-// }
