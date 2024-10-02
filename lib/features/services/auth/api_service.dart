@@ -25,7 +25,7 @@ class ApiService {
       });
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/auth/google'), // Cambia por la URL de tu backend
+        Uri.parse('http://192.168.0.102:8000/api/auth/google'), // Cambia por la URL de tu backend
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -58,6 +58,7 @@ class ApiService {
         }
       } else {
         logger.e('Error al iniciar sesión en Laravel: ${response.statusCode} - ${response.body}');
+        logger.e('Error: ${response.statusCode}');
       }
 
       return response; // Devuelve la respuesta
@@ -71,7 +72,7 @@ class ApiService {
 
   Future<http.Response> logout(String token) async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/auth/logout'),
+      Uri.parse('http://192.168.0.102:8000/api/auth/logout'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ class ApiService {
     final token = await _storage.read(key: 'token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/auth/protected-endpoint'),
+        Uri.parse('http://192.168.0.102:8000/api/auth/protected-endpoint'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

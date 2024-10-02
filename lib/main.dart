@@ -8,6 +8,7 @@ import 'package:zonix/features/services/auth/google_sign_in_service.dart';
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:zonix/features/utils/auth_utils.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService _apiService = ApiService();
@@ -36,26 +37,7 @@ void initialization() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  Future<bool> _isAuthenticated() async {
-    final token = await _storage.read(key: 'token');
-    final expiryDate = await _storage.read(key: 'expiryDate');
-
-    if (token != null && expiryDate != null) {
-      final now = DateTime.now();
-      final expiry = DateTime.parse(expiryDate);
-
-      if (expiry.isAfter(now)) {
-        // Token aún válido, continuar
-        return true;
-      } else {
-        // Eliminar token si está expirado
-        await _storage.deleteAll();
-      }
-    }
-    return true; // Token no válido o expirado
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -65,7 +47,8 @@ class MyApp extends StatelessWidget {
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.system,
       home: FutureBuilder<bool>(
-        future: _isAuthenticated(),
+        // future: _isAuthenticated(),
+        future: AuthUtils.isAuthenticated(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -96,7 +79,7 @@ class MainRouterState extends State<MainRouter> {
   Future<Map<String, dynamic>> _getUserDetails() async {
     final token = await _storage.read(key: 'token');
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/api/auth/user'),
+      Uri.parse('http://192.168.0.102:8000/api/auth/user'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -111,6 +94,7 @@ class MainRouterState extends State<MainRouter> {
         'role': role,
       };
     } else {
+      logger.e('Error: ${response.statusCode}');
       throw Exception('Error al obtener detalles del usuario');
     }
   }
@@ -144,28 +128,27 @@ class MainRouterState extends State<MainRouter> {
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'a'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Configuración'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
       case 1:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.money), label: 'Finanzas'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'b'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
       case 2:
         return const [
           BottomNavigationBarItem(
               icon: Icon(Icons.business), label: 'Negocios'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'c'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Configuración'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
       // Agrega más casos según sea necesario
       default:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'd'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Configuración'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
     }
   }
@@ -328,7 +311,7 @@ class MainRouterState extends State<MainRouter> {
     );
   }
 
-  Future<void> _handleLogout() async {
+   Future<void> _handleLogout() async {
     try {
       final token = await _storage.read(key: 'token');
       if (token != null) {
@@ -338,6 +321,7 @@ class MainRouterState extends State<MainRouter> {
           await _storage.deleteAll();
 
           if (!mounted) return;
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const SignInScreen()),
@@ -346,6 +330,7 @@ class MainRouterState extends State<MainRouter> {
             const SnackBar(content: Text('Sesión cerrada correctamente')),
           );
         } else {
+          logger.e('Error: ${response.statusCode}');
           throw Exception('Error en la API al cerrar sesión');
         }
       }
@@ -392,21 +377,24 @@ class SignInScreen extends StatefulWidget {
 
 class SignInScreenState extends State<SignInScreen> {
   final GoogleSignInService googleSignInService = GoogleSignInService();
-  final ApiService _apiService = ApiService();
+  bool isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+  isAuthenticated = await AuthUtils.isAuthenticated();
+    setState(() {});
+  }
+
+ 
 
   Future<void> _handleSignIn() async {
-    final result = await googleSignInService.signInWithGoogle();
 
-    if (result != null) {
-      final processedResult = jsonEncode(result);
-
-      // Aquí se espera que sendTokenToBackend retorne un objeto Response
-      final response = await _apiService.sendTokenToBackend(processedResult);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        await _storage.write(key: 'token', value: data['token']);
-        await _storage.write(key: 'role', value: data['role']); // Guarda el rol
+      await GoogleSignInService.signInWithGoogle();
 
         if (!mounted) return;
 
@@ -414,23 +402,36 @@ class SignInScreenState extends State<SignInScreen> {
           context,
           MaterialPageRoute(builder: (context) => const MainRouter()),
         );
-      } else {
-        // Manejo de error para respuesta no exitosa
-        logger.e('Error: ${response.statusCode}');
-      }
-    } else {
-      logger.e('Error al iniciar sesión con Google');
-    }
+ 
+  }
+
+  Future<void> _handleLogout() async {
+    await googleSignInService.signOut();
+     await AuthUtils.logout();
+ 
+
+          if (!mounted) return;
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sesión cerrada correctamente')),
+          );
+    
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Google Sign-In')),
+      appBar: AppBar(title: const Text('Configuración')),
       body: Center(
         child: ElevatedButton(
-          onPressed: _handleSignIn,
-          child: const Text('Iniciar sesión con Googlexxxxxxxxxxxxx'),
+          onPressed: isAuthenticated
+              ? _handleLogout // Llama directamente a _handleLogout
+              : _handleSignIn,
+          child: Text(isAuthenticated ? 'Cerrar sesión' : 'Iniciar sesión con Google'),
         ),
       ),
     );
