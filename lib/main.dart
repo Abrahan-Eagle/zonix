@@ -12,6 +12,10 @@ import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
+import 'package:sign_in_button/sign_in_button.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService _apiService = ApiService();
@@ -23,13 +27,18 @@ void main() {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initialization(); // Lógica de inicialización.
+
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,  // Bloquea la orientación vertical
+    DeviceOrientation.portraitDown,  // Bloquea la orientación vertical (opcional)
+  ]);
   // runApp(const MyApp());
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
-      child:const MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -63,16 +72,15 @@ class MyApp extends StatelessWidget {
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           if (userProvider.isAuthenticated) {
-            return const MainRouter();  // Usuario autenticado
+            return const MainRouter(); // Usuario autenticado
           } else {
-            return const SignInScreen();  // Usuario no autenticado
+            return const SignInScreen(); // Usuario no autenticado
           }
         },
       ),
     );
   }
 }
-
 
 class MainRouter extends StatefulWidget {
   const MainRouter({super.key});
@@ -139,27 +147,31 @@ class MainRouterState extends State<MainRouter> {
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'a'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración'),
         ];
       case 1:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.money), label: 'Finanzas'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'b'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración'),
         ];
       case 2:
         return const [
           BottomNavigationBarItem(
               icon: Icon(Icons.business), label: 'Negocios'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'c'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración'),
         ];
       // Agrega más casos según sea necesario
       default:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'd'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración'),
         ];
     }
   }
@@ -179,7 +191,7 @@ class MainRouterState extends State<MainRouter> {
         context,
         MaterialPageRoute(
             builder: (context) =>
-                const SignInScreen()), // Navega a la pantalla de perfil
+                const SettingsPage2()), // Navega a la pantalla de perfil
       );
     } else {
       setState(() {
@@ -209,124 +221,117 @@ class MainRouterState extends State<MainRouter> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          automaticallyImplyLeading: false,
-          elevation: 4.0,
-          title: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'ZONI',
-                  style: TextStyle(
-                    fontFamily: 'system-ui',
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                    letterSpacing: 1.2,
-                  ),
+        automaticallyImplyLeading: false,
+        elevation: 4.0,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'ZONI',
+                style: TextStyle(
+                  fontFamily: 'system-ui',
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  letterSpacing: 1.2,
                 ),
-                TextSpan(
-                  text: 'X',
-                  style: TextStyle(
-                    fontFamily: 'system-ui',
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.blueAccent[700]
-                        : Colors.orange,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          centerTitle: false,
-          // actions: [
-          //   IconButton(
-          //     icon: const Icon(Icons.logout),
-          //     onPressed: () async {
-          //       await _handleLogout(); // Llama a la función de logout
-          //     },
-          //   ),
-          // ]
-   actions: [
-  Consumer<UserProvider>(
-    builder: (context, userProvider, child) {
-      return GestureDetector(
-        onTap: () {
-          showMenu(
-            context: context,
-            position:  const RelativeRect.fromLTRB(200, 80, 0, 0), // Posición del menú
-            items: [
-            const  PopupMenuItem<Menu>(
-                value: Menu.itemOne,
-                child: Text('Account'),
               ),
-              PopupMenuItem<Menu>(
-                value: Menu.itemTwo,
-                child: const Text('Settings'),
+              TextSpan(
+                text: 'X',
+                style: TextStyle(
+                  fontFamily: 'system-ui',
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.blueAccent[700]
+                      : Colors.orange,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        centerTitle: false,
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.logout),
+        //     onPressed: () async {
+        //       await _handleLogout(); // Llama a la función de logout
+        //     },
+        //   ),
+        // ]
+        actions: [
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              return GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInScreen()),
+                  showMenu(
+                    context: context,
+                    position: const RelativeRect.fromLTRB(
+                        200, 80, 0, 0), // Posición del menú
+                    items: [
+                      const PopupMenuItem<Menu>(
+                        value: Menu.itemOne,
+                        child: Text('Account'),
+                      ),
+                      PopupMenuItem<Menu>(
+                        value: Menu.itemTwo,
+                        child: const Text('Settings'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SignInScreen()),
+                          );
+                        },
+                      ),
+                      PopupMenuItem<Menu>(
+                        value: Menu.itemThree,
+                        child: const Text('Sign Out'),
+                        onTap: () async {
+                          await _handleLogout(); // Llama a la función de logout
+                        },
+                      ),
+                    ],
                   );
                 },
-              ),
-
-
-              PopupMenuItem<Menu>(
-                value: Menu.itemThree,
-                child: const Text('Sign Out'),
-                onTap: () async {
-                  await _handleLogout();  // Llama a la función de logout
-                },
-              ),
-
-
-            ],
-          );
-        },
-        child: FutureBuilder<String?>(
-          future: _storage.read(key: 'userPhotoUrl'),
-          builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircleAvatar(
-                radius: 20,
-              );
-            } else if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-              return const CircleAvatar(
-                radius: 20,
-              );
-            } else {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: CircleAvatar(
-                  radius: 20,
-                  child: ClipOval(
-                    child: Image.network(
-                      snapshot.data!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                child: FutureBuilder<String?>(
+                  future: _storage.read(key: 'userPhotoUrl'),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String?> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        radius: 20,
+                      );
+                    } else if (snapshot.hasError ||
+                        snapshot.data == null ||
+                        snapshot.data!.isEmpty) {
+                      return const CircleAvatar(
+                        radius: 20,
+                      );
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: CircleAvatar(
+                          radius: 20,
+                          child: ClipOval(
+                            child: Image.network(
+                              snapshot.data!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               );
-            }
-          },
-        ),
-      );
-    },
-  ),
-],
-
-
-
-
-
-          
+            },
           ),
-
-          
+        ],
+      ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _getUserDetails(),
         builder: (context, snapshot) {
@@ -427,49 +432,45 @@ class MainRouterState extends State<MainRouter> {
   //   }
   // }
 
-
-
   Future<void> _handleLogout() async {
-  try {
-    final token = await _storage.read(key: 'token');
-    if (token != null) {
-      final response = await _apiService.logout(token);
-      if (response.statusCode == 200) {
-        // Elimina todos los datos
-        await _storage.deleteAll();
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token != null) {
+        final response = await _apiService.logout(token);
+        if (response.statusCode == 200) {
+          // Elimina todos los datos
+          await _storage.deleteAll();
 
-        // Actualiza el estado de la sesión
-        if (mounted) {
-          // Solo accede al BuildContext si el widget está montado
-          Provider.of<UserProvider>(context, listen: false).checkAuthentication();
+          // Actualiza el estado de la sesión
+          if (mounted) {
+            // Solo accede al BuildContext si el widget está montado
+            Provider.of<UserProvider>(context, listen: false)
+                .checkAuthentication();
+          }
+          if (!mounted) return;
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sesión cerrada correctamente')),
+          );
+        } else {
+          logger.e('Error: ${response.statusCode}');
+          throw Exception('Error en la API al cerrar sesión');
         }
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sesión cerrada correctamente')),
-        );
-      } else {
-        logger.e('Error: ${response.statusCode}');
-        throw Exception('Error en la API al cerrar sesión');
       }
+    } catch (e) {
+      logger.e('Error al cerrar sesión: $e');
     }
-  } catch (e) {
-    logger.e('Error al cerrar sesión: $e');
   }
 }
-
-}
-
-
 
 enum Menu { itemOne, itemTwo, itemThree }
 
 class ProfileIcon extends StatelessWidget {
- const ProfileIcon({super.key});
+  const ProfileIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -480,32 +481,30 @@ class ProfileIcon extends StatelessWidget {
         itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
               const PopupMenuItem<Menu>(
                 value: Menu.itemOne,
-                child: Text('Account'),
+                child: Text('Cuenta'),
               ),
               const PopupMenuItem<Menu>(
                 value: Menu.itemTwo,
-                child: Text('Settings'),
+                child: Text('Configuración'),
               ),
               const PopupMenuItem<Menu>(
                 value: Menu.itemThree,
-                child: Text('Sign Out'),
-        //               onTap: () async {
-        //               const ProfileIcon();
-        // },
-        // onPressed: () async {
-        //         await _handleLogout(); // Llama a la función de logout
-        // },
+                child: Text('Cerrar sesión'),
+                //               onTap: () async {
+                //               const ProfileIcon();
+                // },
+                // onPressed: () async {
+                //         await _handleLogout(); // Llama a la función de logout
+                // },
 
-          // Llama a la función de logout, o cualquier otra lógica que quieras ejecutar
-          // userProvider.logout();
-          // Navigator.pushNamed(context, '/login');  // Redirige a la pantalla de login
-        
-
-
+                // Llama a la función de logout, o cualquier otra lógica que quieras ejecutar
+                // userProvider.logout();
+                // Navigator.pushNamed(context, '/login');  // Redirige a la pantalla de login
               ),
             ]);
   }
 }
+
 // Ejemplos de páginas para los roles de usuario
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -541,14 +540,11 @@ class SignInScreen extends StatefulWidget {
   SignInScreenState createState() => SignInScreenState();
 }
 
-
-
 class SignInScreenState extends State<SignInScreen> {
   final GoogleSignInService googleSignInService = GoogleSignInService();
   bool isAuthenticated = false;
   GoogleSignInAccount? _currentUser;
- 
- 
+
   @override
   void initState() {
     super.initState();
@@ -564,16 +560,18 @@ class SignInScreenState extends State<SignInScreen> {
   // }
 
   Future<void> _checkAuthentication() async {
-  isAuthenticated = await AuthUtils.isAuthenticated();
-  if (isAuthenticated) {
-    _currentUser = await GoogleSignInService.getCurrentUser();
-    if (_currentUser != null) {
-      logger.i('Foto de usuario: ${_currentUser!.photoUrl}'); // Verifica la URL aquí
-      await _storage.write(key: 'userPhotoUrl', value: _currentUser!.photoUrl);
+    isAuthenticated = await AuthUtils.isAuthenticated();
+    if (isAuthenticated) {
+      _currentUser = await GoogleSignInService.getCurrentUser();
+      if (_currentUser != null) {
+        logger.i(
+            'Foto de usuario: ${_currentUser!.photoUrl}'); // Verifica la URL aquí
+        await _storage.write(
+            key: 'userPhotoUrl', value: _currentUser!.photoUrl);
+      }
     }
+    setState(() {});
   }
-  setState(() {});
-}
 
   Future<void> _handleSignIn() async {
     await GoogleSignInService.signInWithGoogle();
@@ -582,14 +580,15 @@ class SignInScreenState extends State<SignInScreen> {
 
     if (_currentUser != null) {
       logger.i('Inicio de sesión exitoso');
-      logger.i('Usuario: ${_currentUser!.displayName}, Correo: ${_currentUser!.email}');
-      
+      logger.i(
+          'Usuario: ${_currentUser!.displayName}, Correo: ${_currentUser!.email}');
+
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainRouter()),
-      );  
+      );
     } else {
       logger.i('Inicio de sesión cancelado o fallido');
     }
@@ -616,11 +615,12 @@ class SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Google Sign-In')),
+      appBar: AppBar(title: const Text('Inicia sesión')),
+
       // backgroundColor: Colors.blueGrey,
-        //  backgroundColor: Theme.of(context).brightness == Brightness.dark
-        //                 ? Colors.blueAccent[700]
-        //                 : Colors.orange,
+      //  backgroundColor: Theme.of(context).brightness == Brightness.dark
+      //                 ? Colors.blueAccent[700]
+      //                 : Colors.orange,
       body: Center(
         child: _currentUser == null ? _buildSignInButton() : _buildUserInfo(),
       ),
@@ -655,11 +655,267 @@ class SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  // Botón de inicio de sesión
-  Widget _buildSignInButton() {
-    return ElevatedButton(
-      onPressed: _handleSignIn,
-      child: const Text('Iniciar sesión con Google'),
+  // // Botón de inicio de sesión
+  // Widget _buildSignInButton() {
+  //   return ElevatedButton(
+  //     onPressed: _handleSignIn,
+  //     child: const Text('Iniciar sesión con Google'),
+  //   );
+  // }
+
+
+Widget _buildSignInButton() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      // Contenedor para el texto 'Hola'
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
+        child: const Text(
+          'Hola',
+          textAlign: TextAlign.left,
+          style: TextStyle(fontSize: 30),
+        ),
+      ),
+      const SizedBox(height: 16),
+
+      // Contenedor para el texto explicativo
+    Container(
+  padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
+  child: RichText(
+    textAlign: TextAlign.left,
+    text: TextSpan(
+      children: [
+        TextSpan(  // Eliminamos el const aquí
+          text: 'Puedes usar tu cuenta Gmail, para registrarte y entrar a ',
+          style: TextStyle(
+            fontSize: 20, // Tamaño del texto normal
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black, // Color adaptado al tema
+          ),
+        ),
+        TextSpan(
+          text: 'ZONI', // Parte del texto con estilo especial
+          style: TextStyle(
+            fontFamily: 'system-ui',
+            fontSize: 21, // Tamaño de fuente diferente para 'ZONIX'
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black, // Color adaptado al tema (oscuro o claro)
+            letterSpacing: 1.2,
+          ),
+        ),
+        TextSpan(
+          text: 'X', // Parte del texto con estilo especial
+          style: TextStyle(
+            fontFamily: 'system-ui',
+            fontSize: 21, // Tamaño de fuente diferente para 'ZONIX'
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.blueAccent[700]
+                : Colors.orange, // Color adaptado al tema (oscuro o claro)
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+      
+    ),
+  ),
+),
+
+
+      const SizedBox(height: 24),
+
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
+        child: Image.network(
+          'https://i.ibb.co/cJqsPSB/scooter.png', // URL de la imagen
+          fit: BoxFit.cover, // Puedes ajustar el ajuste de la imagen si es necesario
+          // width: 200, // Ajusta el ancho si es necesario
+          // height: 200, // Ajusta la altura si es necesario
+        ),
+      ),
+
+      // const SizedBox(height: 24),
+      // Aquí puedes dejar espacio en la parte superior para ajustar el contenido
+      const Spacer(),
+
+      // Contenedor para el botón de inicio de sesión con Google
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
+        child: SignInButton(
+          Buttons.google,
+          text: 'Iniciar sesión con Google',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          onPressed: _handleSignIn,
+        ),
+      ),
+       const SizedBox(height: 30),
+    ],
+  );
+}
+
+}
+
+
+
+class SettingsPage2 extends StatefulWidget {
+  const SettingsPage2({super.key});
+
+  @override
+  State<SettingsPage2> createState() => _SettingsPage2State();
+}
+
+class _SettingsPage2State extends State<SettingsPage2> {
+  @override
+  Widget build(BuildContext context) {
+    // Obtiene el UserProvider, asegurándote de que no se escuche cambios innecesarios
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Configuraciones"),
+      ),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: ListView(
+            children: [
+              _buildGeneralSection(),
+              const Divider(),
+              _buildOrganizationSection(),
+              const Divider(),
+              _buildHelpAndLogoutSection(userProvider),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeneralSection() {
+    return const _SingleSection(
+      title: "General",
+      children: [
+        _CustomListTile(
+          title: "Notificaciones",
+          icon: Icons.notifications_none_rounded,
+        ),
+        _CustomListTile(
+          title: "Estado de Seguridad",
+          icon: CupertinoIcons.lock_shield,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrganizationSection() {
+    return const _SingleSection(
+      title: "Organización",
+      children: [
+        _CustomListTile(
+          title: "Perfil",
+          icon: Icons.person_outline_rounded,
+        ),
+        _CustomListTile(
+          title: "Mensajes",
+          icon: Icons.message_outlined,
+        ),
+        _CustomListTile(
+          title: "Llamadas",
+          icon: Icons.phone_outlined,
+        ),
+        _CustomListTile(
+          title: "Personas",
+          icon: Icons.contacts_outlined,
+        ),
+        _CustomListTile(
+          title: "Calendario",
+          icon: Icons.calendar_today_rounded,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHelpAndLogoutSection(UserProvider userProvider) {
+    return _SingleSection(
+      children: [
+        const _CustomListTile(
+          title: "Ayuda y Comentarios",
+          icon: Icons.help_outline_rounded,
+        ),
+        const _CustomListTile(
+          title: "Acerca de",
+          icon: Icons.info_outline_rounded,
+        ),
+        _CustomListTile(
+          title: "Cerrar sesión",
+          icon: Icons.exit_to_app_rounded,
+          // Pasa la función logout como una referencia
+          onTap: () async {
+            await userProvider.logout();
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SignInScreen()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomListTile extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final GestureTapCallback? onTap;
+
+  const _CustomListTile({
+    required this.title,
+    required this.icon,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      leading: Icon(icon),
+      onTap: onTap,
+    );
+  }
+}
+
+class _SingleSection extends StatelessWidget {
+  final String? title;
+  final List<Widget> children;
+
+  const _SingleSection({this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title != null)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              title!,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        Column(
+          children: children,
+        ),
+      ],
     );
   }
 }

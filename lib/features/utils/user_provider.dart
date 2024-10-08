@@ -50,14 +50,21 @@ class UserProvider with ChangeNotifier {
   }
 
   // Método para cerrar sesión
-  void logout() {
+Future<void> logout() async {
+  try {
     _isAuthenticated = false;
     _userName = '';
     _userEmail = '';
     _userPhotoUrl = '';
-    AuthUtils.logout();  // Cierra la sesión de manera correcta
+    await AuthUtils.logout(); // Asegúrate de que esto sea asíncrono y lo esperes
+  } catch (e) {
+    print('Error al cerrar sesión: $e');
+  } finally {
     notifyListeners();
   }
+}
+
+
 }
 
 
