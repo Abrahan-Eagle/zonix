@@ -10,8 +10,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/user_provider.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService _apiService = ApiService();
@@ -23,15 +21,7 @@ void main() {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initialization(); // Lógica de inicialización.
-  // runApp(const MyApp());
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-      ],
-      child:const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 void initialization() async {
@@ -48,31 +38,31 @@ void initialization() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
-    // Inicializa el estado de autenticación al iniciar la app
-    Provider.of<UserProvider>(context, listen: false).checkAuthentication();
-
     return MaterialApp(
       title: 'ZONIX',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.system,
-      home: Consumer<UserProvider>(
-        builder: (context, userProvider, child) {
-          if (userProvider.isAuthenticated) {
-            return const MainRouter();  // Usuario autenticado
+      home: FutureBuilder<bool>(
+        // future: _isAuthenticated(),
+        future: AuthUtils.isAuthenticated(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.data == true) {
+            return const MainRouter(); // Usuario autenticado
           } else {
-            return const SignInScreen();  // Usuario no autenticado
+            return const SignInScreen(); // Usuario no autenticado
           }
         },
       ),
     );
   }
 }
-
 
 class MainRouter extends StatefulWidget {
   const MainRouter({super.key});
@@ -242,91 +232,14 @@ class MainRouterState extends State<MainRouter> {
             ),
           ),
           centerTitle: false,
-          // actions: [
-          //   IconButton(
-          //     icon: const Icon(Icons.logout),
-          //     onPressed: () async {
-          //       await _handleLogout(); // Llama a la función de logout
-          //     },
-          //   ),
-          // ]
-   actions: [
-  Consumer<UserProvider>(
-    builder: (context, userProvider, child) {
-      return GestureDetector(
-        onTap: () {
-          showMenu(
-            context: context,
-            position:  const RelativeRect.fromLTRB(200, 80, 0, 0), // Posición del menú
-            items: [
-            const  PopupMenuItem<Menu>(
-                value: Menu.itemOne,
-                child: Text('Account'),
-              ),
-              PopupMenuItem<Menu>(
-                value: Menu.itemTwo,
-                child: const Text('Settings'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInScreen()),
-                  );
-                },
-              ),
-
-
-              PopupMenuItem<Menu>(
-                value: Menu.itemThree,
-                child: const Text('Sign Out'),
-                onTap: () async {
-                  await _handleLogout();  // Llama a la función de logout
-                },
-              ),
-
-
-            ],
-          );
-        },
-        child: FutureBuilder<String?>(
-          future: _storage.read(key: 'userPhotoUrl'),
-          builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircleAvatar(
-                radius: 20,
-              );
-            } else if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-              return const CircleAvatar(
-                radius: 20,
-              );
-            } else {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: CircleAvatar(
-                  radius: 20,
-                  child: ClipOval(
-                    child: Image.network(
-                      snapshot.data!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              );
-            }
-          },
-        ),
-      );
-    },
-  ),
-],
-
-
-
-
-
-          
-          ),
-
-          
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                await _handleLogout(); // Llama a la función de logout
+              },
+            ),
+          ]),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _getUserDetails(),
         builder: (context, snapshot) {
@@ -399,113 +312,35 @@ class MainRouterState extends State<MainRouter> {
     );
   }
 
-  //  Future<void> _handleLogout() async {
-  //   try {
-  //     final token = await _storage.read(key: 'token');
-  //     if (token != null) {
-  //       final response = await _apiService.logout(token);
-  //       if (response.statusCode == 200) {
-  //         // Elimina todos los datos
-  //         await _storage.deleteAll();
+   Future<void> _handleLogout() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token != null) {
+        final response = await _apiService.logout(token);
+        if (response.statusCode == 200) {
+          // Elimina todos los datos
+          await _storage.deleteAll();
 
-  //         if (!mounted) return;
+          if (!mounted) return;
 
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => const SignInScreen()),
-  //         );
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           const SnackBar(content: Text('Sesión cerrada correctamente')),
-  //         );
-  //       } else {
-  //         logger.e('Error: ${response.statusCode}');
-  //         throw Exception('Error en la API al cerrar sesión');
-  //       }
-  //     }
-  //   } catch (e) {
-  //     logger.e('Error al cerrar sesión: $e');
-  //   }
-  // }
-
-
-
-  Future<void> _handleLogout() async {
-  try {
-    final token = await _storage.read(key: 'token');
-    if (token != null) {
-      final response = await _apiService.logout(token);
-      if (response.statusCode == 200) {
-        // Elimina todos los datos
-        await _storage.deleteAll();
-
-        // Actualiza el estado de la sesión
-        if (mounted) {
-          // Solo accede al BuildContext si el widget está montado
-          Provider.of<UserProvider>(context, listen: false).checkAuthentication();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sesión cerrada correctamente')),
+          );
+        } else {
+          logger.e('Error: ${response.statusCode}');
+          throw Exception('Error en la API al cerrar sesión');
         }
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sesión cerrada correctamente')),
-        );
-      } else {
-        logger.e('Error: ${response.statusCode}');
-        throw Exception('Error en la API al cerrar sesión');
       }
+    } catch (e) {
+      logger.e('Error al cerrar sesión: $e');
     }
-  } catch (e) {
-    logger.e('Error al cerrar sesión: $e');
   }
 }
 
-}
-
-
-
-enum Menu { itemOne, itemTwo, itemThree }
-
-class ProfileIcon extends StatelessWidget {
- const ProfileIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<Menu>(
-        // icon: const Icon(Icons.person),
-        offset: const Offset(0, 40),
-        onSelected: (Menu item) {},
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
-              const PopupMenuItem<Menu>(
-                value: Menu.itemOne,
-                child: Text('Account'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemTwo,
-                child: Text('Settings'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemThree,
-                child: Text('Sign Out'),
-        //               onTap: () async {
-        //               const ProfileIcon();
-        // },
-        // onPressed: () async {
-        //         await _handleLogout(); // Llama a la función de logout
-        // },
-
-          // Llama a la función de logout, o cualquier otra lógica que quieras ejecutar
-          // userProvider.logout();
-          // Navigator.pushNamed(context, '/login');  // Redirige a la pantalla de login
-        
-
-
-              ),
-            ]);
-  }
-}
 // Ejemplos de páginas para los roles de usuario
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -555,25 +390,13 @@ class SignInScreenState extends State<SignInScreen> {
     _checkAuthentication();
   }
 
-  // Future<void> _checkAuthentication() async {
-  //   isAuthenticated = await AuthUtils.isAuthenticated();
-  //   if (isAuthenticated) {
-  //     _currentUser = await GoogleSignInService.getCurrentUser(); // Asegúrate de que este método devuelva un objeto de tipo GoogleUser
-  //   }
-  //   setState(() {});
-  // }
-
   Future<void> _checkAuthentication() async {
-  isAuthenticated = await AuthUtils.isAuthenticated();
-  if (isAuthenticated) {
-    _currentUser = await GoogleSignInService.getCurrentUser();
-    if (_currentUser != null) {
-      logger.i('Foto de usuario: ${_currentUser!.photoUrl}'); // Verifica la URL aquí
-      await _storage.write(key: 'userPhotoUrl', value: _currentUser!.photoUrl);
+    isAuthenticated = await AuthUtils.isAuthenticated();
+    if (isAuthenticated) {
+      _currentUser = await GoogleSignInService.getCurrentUser(); // Asegúrate de que este método devuelva un objeto de tipo GoogleUser
     }
+    setState(() {});
   }
-  setState(() {});
-}
 
   Future<void> _handleSignIn() async {
     await GoogleSignInService.signInWithGoogle();
