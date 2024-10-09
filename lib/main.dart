@@ -15,6 +15,7 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:zonix/features/screens/profile_page.dart';
 
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -263,6 +264,7 @@ class MainRouterState extends State<MainRouter> {
         //   ),
         // ]
         actions: [
+          
           Consumer<UserProvider>(
             builder: (context, userProvider, child) {
               return GestureDetector(
@@ -272,26 +274,59 @@ class MainRouterState extends State<MainRouter> {
                     position: const RelativeRect.fromLTRB(
                         200, 80, 0, 0), // Posición del menú
                     items: [
-                      const PopupMenuItem<Menu>(
-                        value: Menu.itemOne,
-                        child: Text('Account'),
-                      ),
                       PopupMenuItem<Menu>(
-                        value: Menu.itemTwo,
-                        child: const Text('Settings'),
+                        value: Menu.itemOne,
+                        child: const Row(
+                          children: [
+                            Icon(Icons.person),
+                            // SizedBox(width: 10),
+                            Text('Perfil'),
+                          ],
+                        ),
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const SignInScreen()),
+                                // builder: (context) => const SignInScreen()),
+                                builder: (context) => const ProfilePage1()),
+                          );
+                        },  //
+                      ),
+                      PopupMenuItem<Menu>(
+                        value: Menu.itemTwo,
+                        child: const Row(
+                          children: [
+                            Icon(Icons.settings),
+                            // SizedBox(width: 10),
+                            Text('Configuración'),
+                          ],
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SettingsPage2()),
                           );
                         },
                       ),
                       PopupMenuItem<Menu>(
                         value: Menu.itemThree,
-                        child: const Text('Sign Out'),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.exit_to_app,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                            // const SizedBox(width: 10),
+                            const Text('Cerrar sesión'),
+                          ],
+                        ),
                         onTap: () async {
                           await _handleLogout(); // Llama a la función de logout
+                          const SignInScreen();
                         },
                       ),
                     ],
@@ -578,7 +613,23 @@ class SignInScreenState extends State<SignInScreen> {
     _currentUser = await GoogleSignInService.getCurrentUser();
     setState(() {});
 
-    if (_currentUser != null) {
+        if (_currentUser != null) {
+        await AuthUtils.saveUserName(_currentUser!.displayName ?? 'Nombre no disponible');
+        await AuthUtils.saveUserEmail(_currentUser!.email ?? 'Email no disponible');
+        await AuthUtils.saveUserPhotoUrl(_currentUser!.photoUrl ?? 'URL de foto no disponible');
+
+    // Verificar que los datos se hayan guardado
+        String? savedName = await _storage.read(key: 'userName');
+        String? savedEmail = await _storage.read(key: 'userEmail');
+        String? savedPhotoUrl = await _storage.read(key: 'userPhotoUrl');
+
+        // Verifica en el log si los valores fueron correctamente almacenados
+        logger.i('Nombre guardado: $savedName');
+        logger.i('Correo guardado: $savedEmail');
+        logger.i('Foto guardada: $savedPhotoUrl');
+
+
+
       logger.i('Inicio de sesión exitoso');
       logger.i(
           'Usuario: ${_currentUser!.displayName}, Correo: ${_currentUser!.email}');
@@ -815,32 +866,57 @@ class _SettingsPage2State extends State<SettingsPage2> {
   }
 
   Widget _buildOrganizationSection() {
-    return const _SingleSection(
-      title: "Organización",
-      children: [
-        _CustomListTile(
-          title: "Perfil",
-          icon: Icons.person_outline_rounded,
-        ),
-        _CustomListTile(
-          title: "Mensajes",
-          icon: Icons.message_outlined,
-        ),
-        _CustomListTile(
-          title: "Llamadas",
-          icon: Icons.phone_outlined,
-        ),
-        _CustomListTile(
-          title: "Personas",
-          icon: Icons.contacts_outlined,
-        ),
-        _CustomListTile(
-          title: "Calendario",
-          icon: Icons.calendar_today_rounded,
-        ),
-      ],
-    );
-  }
+  return _SingleSection(
+    title: "Organización",
+    children: [
+      _CustomListTile(
+        title: "Perfil",
+        icon: Icons.person_outline_rounded,
+        onTap: () {
+          // Navegar a la página de perfil
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ProfilePage1(),
+            ),
+          );
+        },
+      ),
+      _CustomListTile(
+        title: "Mensajes",
+        icon: Icons.message_outlined,
+        onTap: () {
+          // Agrega la lógica para mensajes
+          logger.i("Mensajes seleccionados");
+        },
+      ),
+      _CustomListTile(
+        title: "Llamadas",
+        icon: Icons.phone_outlined,
+        onTap: () {
+          // Agrega la lógica para llamadas
+          logger.i("Llamadas seleccionadas");
+        },
+      ),
+      _CustomListTile(
+        title: "Personas",
+        icon: Icons.contacts_outlined,
+        onTap: () {
+          // Agrega la lógica para personas
+          logger.i("Personas seleccionadas");
+        },
+      ),
+      _CustomListTile(
+        title: "Calendario",
+        icon: Icons.calendar_today_rounded,
+        onTap: () {
+          // Agrega la lógica para el calendario
+          logger.i("Calendario seleccionado");
+        },
+      ),
+    ],
+  );
+}
 
   Widget _buildHelpAndLogoutSection(UserProvider userProvider) {
     return _SingleSection(
