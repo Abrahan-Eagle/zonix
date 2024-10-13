@@ -16,6 +16,9 @@ import 'package:sign_in_button/sign_in_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:zonix/features/screens/profile_page.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_example.dart';
+
+// import 'onboarding_example.dart';
 
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -76,6 +79,7 @@ class MyApp extends StatelessWidget {
             return const MainRouter(); // Usuario autenticado
           } else {
             return const SignInScreen(); // Usuario no autenticado
+          //  return const OnboardingExample();
           }
         },
       ),
@@ -636,10 +640,17 @@ class SignInScreenState extends State<SignInScreen> {
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const MainRouter()),
+      // );
+
+Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainRouter()),
       );
+
+
     } else {
       logger.i('Inicio de sesión cancelado o fallido');
     }
