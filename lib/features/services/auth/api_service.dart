@@ -1,14 +1,14 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Importa FlutterSecureStorage
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage(); // Inicializa _storage
 
 class ApiService {
-
- Future<http.Response> sendTokenToBackend(String? result) async {
+  // Enviar el token al backend
+  Future<http.Response> sendTokenToBackend(String? result) async {
     if (result == null) {
       logger.e('Error: el data es null');
       throw Exception('El data es null'); // Lanza una excepción
@@ -39,12 +39,15 @@ class ApiService {
         logger.i('Respuesta del servidor: $responseData');
         var $varToken = responseData['token'];
         logger.i($varToken);
+        var $varRole= responseData['user']['role'];
+        logger.i($varRole);
 
         // Verificación más flexible para data
         if ($varToken != null) {
           await _storage.write(key: 'token', value: responseData['token']);  // Guardar el JWT en almacenamiento seguro
-         await _storage.write(key: 'role', value: responseData['role']);
-         logger.i('Inicio de sesión exitoso');
+          await _storage.write(key: 'role', value: responseData['user']['role']);
+
+          logger.i('Inicio de sesión exitoso');
 
           // Leer el token del almacenamiento seguro
           String? token = await _storage.read(key: 'token');
@@ -53,12 +56,20 @@ class ApiService {
           } else {
             logger.e('No se encontró ningún token almacenado');
           }
+
+         // Leer el token del almacenamiento seguro
+          String? role = await _storage.read(key: 'role');
+          if (role != null) {
+            logger.i('role almacenadoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $role');
+          } else {
+            logger.e('No se encontró ningún role almacenado');
+          }
+
         } else {
           logger.e('Respuesta inesperada: ${response.body}');
         }
       } else {
         logger.e('Error al iniciar sesión en Laravel: ${response.statusCode} - ${response.body}');
-        logger.e('Error: ${response.statusCode}');
       }
 
       return response; // Devuelve la respuesta
@@ -68,8 +79,7 @@ class ApiService {
     }
   }
 
-
-
+  // Método para cerrar sesión
   Future<http.Response> logout(String token) async {
     final response = await http.post(
       Uri.parse('http://192.168.0.102:8000/api/auth/logout'),
@@ -81,6 +91,7 @@ class ApiService {
     return response;
   }
 
+  // Método para enviar una solicitud autenticada
   Future<void> sendAuthenticatedRequest() async {
     final token = await _storage.read(key: 'token');
     if (token != null) {
