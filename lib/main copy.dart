@@ -3,6 +3,7 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zonix/features/GasTicket/api/gas_ticket_service.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -13,8 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:zonix/features/screens/profile_page.dart';
 import 'package:zonix/features/screens/settings_page_2.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
-import 'package:zonix/features/GasTicket/screens/other_screen.dart';
-import 'package:zonix/features/GasTicket/screens/gas_ticket_list_screen.dart'; // Asegúrate de importar esta pantalla
+import 'package:zonix/features/GasTicket/screens/gas_ticket_list_screen.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -97,7 +97,8 @@ class MainRouterState extends State<MainRouter> {
     setState(() {
       _selectedLevel = prefs.getInt('selectedLevel') ?? 0;
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
-      logger.i('Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
+      logger.i(
+          'Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
     });
   }
 
@@ -105,7 +106,8 @@ class MainRouterState extends State<MainRouter> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedLevel', _selectedLevel);
     await prefs.setInt('bottomNavIndex', _bottomNavIndex);
-    logger.i('Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
+    logger.i(
+        'Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
   }
 
   Future<Map<String, dynamic>> _getUserDetails() async {
@@ -119,9 +121,9 @@ class MainRouterState extends State<MainRouter> {
       },
     );
 
-     if (response.statusCode == 200) {
+    if (response.statusCode == 200) {
       final userDetails = jsonDecode(response.body);
-      final role = await _storage.read(key: 'role'); // Asegúrate de que el rol se esté almacenando correctamente
+      final role = await _storage.read(key: 'role');
       logger.i('User details: $userDetails');
       logger.i('User role: $role');
       return {'users': userDetails, 'role': role};
@@ -130,7 +132,6 @@ class MainRouterState extends State<MainRouter> {
       throw Exception('Error al obtener detalles del usuario');
     }
   }
-
 
   List<BottomNavigationBarItem> _getBottomNavItems(int level) {
     switch (level) {
@@ -152,22 +153,19 @@ class MainRouterState extends State<MainRouter> {
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda3'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
-
       case 4:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda4'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
-
       case 5:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda5'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
         ];
-
-       default:
+      default:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda0'),
@@ -186,7 +184,22 @@ class MainRouterState extends State<MainRouter> {
 
   void _onBottomNavTapped(int index) {
     logger.i('Bottom navigation tapped: $index');
-    if (index == 2) {
+
+    setState(() {
+      _bottomNavIndex = index;
+      logger.i('Bottom nav index changed to: $_bottomNavIndex');
+      _saveLastPosition();
+    });
+
+    if (index == 0) {
+      // Navega al módulo de tickets desde el nivel de gas
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const GasTicketListScreen(),
+        ),
+      );
+    } else if (index == 2) {
       // Navega a la pantalla de configuración
       Navigator.push(
         context,
@@ -194,24 +207,17 @@ class MainRouterState extends State<MainRouter> {
           builder: (context) => const SettingsPage2(),
         ),
       );
-    } else {
-      setState(() {
-        _bottomNavIndex = index;
-        logger.i('Bottom nav index changed to: $_bottomNavIndex');
-        _saveLastPosition();
-      });
     }
   }
-
 
   Widget _createLevelButton(int level, IconData icon, String tooltip) {
     return FloatingActionButton.small(
       heroTag: 'level$level',
       backgroundColor: _selectedLevel == level
-           ? Colors.blueAccent[700]
-           : Colors.blueAccent[50],
+          ? Colors.blueAccent[700]
+          : Colors.blueAccent[50],
       child: Icon(icon,
-            color: _selectedLevel == level ? Colors.white : Colors.black),
+          color: _selectedLevel == level ? Colors.white : Colors.black),
       onPressed: () => _onLevelSelected(level),
     );
   }
@@ -219,7 +225,7 @@ class MainRouterState extends State<MainRouter> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 4.0,
         title: RichText(
@@ -253,154 +259,112 @@ class MainRouterState extends State<MainRouter> {
           ),
         ),
         centerTitle: false,
-       
-       
-       
-       
-       actions: [
-  Consumer<UserProvider>(
-    builder: (context, userProvider, child) {
-      return GestureDetector(
-        onTap: () {
-          showMenu(
-            context: context,
-            position: const RelativeRect.fromLTRB(200, 80, 0, 0),
-            items: [
-              PopupMenuItem(
-                child: const Text('Perfil'),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfilePage1()),
-                ),
-              ),
-              PopupMenuItem(
-                child: const Text('Configuración'),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsPage2()),
-                ),
-              ),
-              PopupMenuItem(
-                child: const Text('Cerrar sesión'),
-                onTap: () async {
-                  await _storage.deleteAll();
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SignInScreen()));
+        actions: [
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              return GestureDetector(
+                onTap: () {
+                  showMenu(
+                    context: context,
+                    position: const RelativeRect.fromLTRB(200, 80, 0, 0),
+                    items: [
+                      PopupMenuItem(
+                        child: const Text('Perfil'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ProfilePage1()),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        child: const Text('Configuración'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SettingsPage2()),
+                        ),
+                      ),
+
+
+                      PopupMenuItem(
+                        child: const Text('Cerrar sesión'),
+                        onTap: () async {
+                          // Obtén el token del almacenamiento seguro
+                          String? token = await _storage.read(key: 'token'); // Asegúrate de que 'storage' es tu instancia de FlutterSecureStorage
+
+                          if (token != null) {
+                            // Llama al método logout con el token
+                            final response = await apiService.logout(token);
+
+                            if (response.statusCode == 200) {
+                              // Si el logout fue exitoso, elimina el token
+                              await _storage.delete(key: 'token');
+                              await _storage.delete(key: 'role');
+                              
+                              // Aquí puedes realizar la navegación a la pantalla de inicio de sesión
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SignInScreen()),
+                              );
+                            } else {
+                              // Manejo de errores si el logout no fue exitoso
+                              logger.e('Error al cerrar sesión: ${response.body}');
+                            }
+                          } else {
+                            // Manejo de error si no se encuentra el token
+                            logger.e('No se encontró el token de sesión');
+                          }
+                        },
+                      ),
+
+
+                      // PopupMenuItem(
+                      //   child: const Text('Cerrar sesión'),
+                      //   onTap: () async {
+                      //      await apiService.logout();
+                      //     await _storage.deleteAll();
+                      //     userProvider.logout();
+                      //     Navigator.pushReplacement(
+                      //       context,
+                      //       MaterialPageRoute(builder: (context) => const SignInScreen()),
+                      //     );
+                      //   },
+                      // ),
+                    ],
+                  );
                 },
-              ),
-            ],
-          );
-        },
-        child: FutureBuilder<String?>(
-          future: _storage.read(key: 'userPhotoUrl'), // Leer la URL de la foto
-          builder:
-              (BuildContext context, AsyncSnapshot<String?> snapshot) {
+                child: const Icon(Icons.person),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Center(
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _getUserDetails(),
+          builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircleAvatar(
-                radius: 20,
-              );
-            } else if (snapshot.hasError ||
-                snapshot.data == null ||
-                snapshot.data!.isEmpty) {
-              return const CircleAvatar(
-                radius: 20,
-                child: Icon(Icons.person), // Icono de usuario predeterminado
-              );
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
             } else {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: CircleAvatar(
-                  radius: 20,
-                  child: ClipOval(
-                    child: Image.network(
-                      snapshot.data!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              );
+              return Text('Welcome, ${snapshot.data!['users']['name']}');
             }
           },
         ),
-      );
-    },
-  ),
-],
-
-
-
-      ),
-      // body: FutureBuilder<Map<String, dynamic>>(
-      //   future: _getUserDetails(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     } else if (snapshot.hasError) {
-      //       logger.e('Error fetching user details: ${snapshot.error}');
-      //       return Center(child: Text('Error: ${snapshot.error}'));
-      //     } else {
-      //       final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
-      //       logger.i('Role fetched: $role');
-      //       return Center(
-      //         child: Text('Rol: $role', style: const TextStyle(fontSize: 24)),
-      //       );
-      //     }
-      //   },
-      // ),
-
-        body: FutureBuilder<Map<String, dynamic>>(
-      future: _getUserDetails(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          logger.e('Error fetching user details: ${snapshot.error}');
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
-          logger.i('Role fetched: $role');
-
-          // Verificar el nivel y el botón de inicio
-          if (_selectedLevel == 0 && _bottomNavIndex == 0) {
-            return const GasTicketListScreen(); // Reemplaza por tu pantalla
-          } 
-           if (_selectedLevel == 0 && _bottomNavIndex == 1) {
-            return const OtherScreen(); // Reemplaza por tu pantalla
-          } 
-          
-          
-          
-          else {
-            return Center(
-              child: Text('Rol: $role', style: const TextStyle(fontSize: 24)),
-            );
-          }
-        }
-      },
-    ),
-      floatingActionButtonLocation: ExpandableFab.location,
-      floatingActionButton: ExpandableFab(
-        distance: 70,
-        type: ExpandableFabType.up,
-        children: [
-          _createLevelButton(0, Icons.propane_tank, 'GAS'),
-          _createLevelButton(1, Icons.attach_money, 'Dólares Compra/Venta'),
-          _createLevelButton(2, Icons.local_police, '911'),
-          _createLevelButton(3, Icons.fastfood, 'Comida Rápida'),
-          _createLevelButton(4, Icons.store, 'Tiendas'),
-          _createLevelButton(5, Icons.local_taxi, 'Taxis'),
-        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: _getBottomNavItems(_selectedLevel),
         currentIndex: _bottomNavIndex,
-        selectedItemColor: Colors.blueAccent, // Color del ícono activo
-        unselectedItemColor: Colors.grey, // Color del ícono inactivo
         onTap: _onBottomNavTapped,
+      ),
+      floatingActionButton: ExpandableFab(
+        distance: 70.0,
+        children: [
+          _createLevelButton(1, Icons.star, 'Nivel 1'),
+          _createLevelButton(2, Icons.star, 'Nivel 2'),
+          _createLevelButton(3, Icons.star, 'Nivel 3'),
+          _createLevelButton(4, Icons.star, 'Nivel 4'),
+          _createLevelButton(5, Icons.star, 'Nivel 5'),
+        ],
       ),
     );
   }

@@ -13,8 +13,6 @@ import 'package:flutter/services.dart';
 import 'package:zonix/features/screens/profile_page.dart';
 import 'package:zonix/features/screens/settings_page_2.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
-import 'package:zonix/features/GasTicket/screens/other_screen.dart';
-import 'package:zonix/features/GasTicket/screens/gas_ticket_list_screen.dart'; // Asegúrate de importar esta pantalla
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -334,54 +332,23 @@ class MainRouterState extends State<MainRouter> {
 
 
       ),
-      // body: FutureBuilder<Map<String, dynamic>>(
-      //   future: _getUserDetails(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     } else if (snapshot.hasError) {
-      //       logger.e('Error fetching user details: ${snapshot.error}');
-      //       return Center(child: Text('Error: ${snapshot.error}'));
-      //     } else {
-      //       final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
-      //       logger.i('Role fetched: $role');
-      //       return Center(
-      //         child: Text('Rol: $role', style: const TextStyle(fontSize: 24)),
-      //       );
-      //     }
-      //   },
-      // ),
-
-        body: FutureBuilder<Map<String, dynamic>>(
-      future: _getUserDetails(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          logger.e('Error fetching user details: ${snapshot.error}');
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
-          logger.i('Role fetched: $role');
-
-          // Verificar el nivel y el botón de inicio
-          if (_selectedLevel == 0 && _bottomNavIndex == 0) {
-            return const GasTicketListScreen(); // Reemplaza por tu pantalla
-          } 
-           if (_selectedLevel == 0 && _bottomNavIndex == 1) {
-            return const OtherScreen(); // Reemplaza por tu pantalla
-          } 
-          
-          
-          
-          else {
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _getUserDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            logger.e('Error fetching user details: ${snapshot.error}');
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
+            logger.i('Role fetched: $role');
             return Center(
               child: Text('Rol: $role', style: const TextStyle(fontSize: 24)),
             );
           }
-        }
-      },
-    ),
+        },
+      ),
       floatingActionButtonLocation: ExpandableFab.location,
       floatingActionButton: ExpandableFab(
         distance: 70,
