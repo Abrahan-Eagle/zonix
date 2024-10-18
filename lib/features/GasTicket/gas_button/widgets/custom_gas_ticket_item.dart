@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
+
+
+final StatusProvider statusProvider = StatusProvider();
 
 class CustomGasTicketItem extends StatelessWidget {
   final Widget thumbnail;
@@ -16,50 +20,6 @@ class CustomGasTicketItem extends StatelessWidget {
     required this.timePosition,
   });
 
-  // Función para obtener el color según el estado
-  Color getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.amber;
-      case 'verifying':
-        return Colors.blueAccent;
-      case 'waiting':
-        return Colors.purple;
-      case 'dispatched':
-        return Colors.green;
-      case 'canceled':
-        return Colors.red;
-      case 'expired':
-        return Colors.orange;
-      default:
-        return Colors.black;
-    }
-  }
-
-  // Función para obtener la imagen según el estado
-  AssetImage getStatusIcon(String status) {
-    return const AssetImage('assets/images/splash_logo_dark.png');
-  }
-
-  // Función para obtener la traducción del estado
-  String getStatusSpanish(String status) {
-  switch (status) {
-    case 'pending':
-      return 'PENDIENTE'; // Convertido a mayúsculas
-    case 'verifying':
-      return 'VERIFICANDO'; // Convertido a mayúsculas
-    case 'waiting':
-      return 'ESPERANDO'; // Convertido a mayúsculas
-    case 'dispatched':
-      return 'DESPACHADO'; // Convertido a mayúsculas
-    case 'canceled':
-      return 'CANCELADO'; // Convertido a mayúsculas
-    case 'expired':
-      return 'EXPIRADO'; // Convertido a mayúsculas
-    default:
-      return 'ESTADO DESCONOCIDO'; // Mensaje por defecto en mayúsculas
-  }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +37,8 @@ class CustomGasTicketItem extends StatelessWidget {
             width: 56.0,
             height: 56.0,
             child: ImageIcon(
-              getStatusIcon(status),
-              color: getStatusColor(status), // Color según el estado
+              statusProvider.getStatusIcon(status),
+              color: statusProvider.getStatusColor(status), // Color según el estado
               size: 56.0,
             ),
           ),
@@ -99,8 +59,8 @@ class CustomGasTicketItem extends StatelessWidget {
                   style: TextStyle(color: estadoLabelColor),
                 ),
                 Text(
-                  getStatusSpanish(status), // Llamada a la función para obtener el estado en español
-                  style: TextStyle(color: getStatusColor(status), fontWeight: FontWeight.bold), // Color según el estado
+                  statusProvider.getStatusSpanish(status), // Llamada a la función para obtener el estado en español
+                  style: TextStyle(color: statusProvider.getStatusColor(status), fontWeight: FontWeight.bold), // Color según el estado
                 ),
               ],
             ),

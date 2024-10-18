@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:zonix/features/GasTicket/models/gas_ticket.dart';
-
+import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
 
 class GasTicketService {
   final String apiUrl = 'http://192.168.0.102:8000/api/tickets';

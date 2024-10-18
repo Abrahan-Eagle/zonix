@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/GasTicket/api/gas_ticket_service.dart';
+import 'package:zonix/features/GasTicket/gas_button/api/gas_ticket_service.dart';
 
 
 class CreateGasTicketScreen extends StatefulWidget {

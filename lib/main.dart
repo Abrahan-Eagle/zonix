@@ -13,12 +13,10 @@ import 'package:flutter/services.dart';
 import 'package:zonix/features/screens/profile_page.dart';
 import 'package:zonix/features/screens/settings_page_2.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
-import 'package:zonix/features/GasTicket/screens/other_screen.dart';
-import 'package:zonix/features/GasTicket/screens/gas_ticket_list_screen.dart'; // Asegúrate de importar esta pantalla
+import 'package:zonix/features/GasTicket/another_button/screens/other_screen.dart';
+import 'package:zonix/features/GasTicket/gas_button/screens/gas_ticket_list_screen.dart'; // Asegúrate de importar esta pantalla
 // import 'dart:io';
 // import 'package:http/http.dart' as http;
-
-
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
