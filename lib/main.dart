@@ -15,12 +15,24 @@ import 'package:zonix/features/screens/settings_page_2.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
 import 'package:zonix/features/GasTicket/screens/other_screen.dart';
 import 'package:zonix/features/GasTicket/screens/gas_ticket_list_screen.dart'; // Asegúrate de importar esta pantalla
+// import 'dart:io';
+// import 'package:http/http.dart' as http;
+
+
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
 
 // Configuración del logger
 final logger = Logger();
+
+//  class MyHttpOverrides extends HttpOverrides{
+//   @override
+//   HttpClient createHttpClient(SecurityContext? context){
+//     return super.createHttpClient(context)
+//       ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+//   }
+// }
 
 void main() {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +44,10 @@ void main() {
     DeviceOrientation.portraitDown,
   ]);
 
+
+
+
+  //  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
       providers: [
