@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
 class GasTicketService {
-  final String apiUrl = 'http://192.168.0.102:8000/api/tickets';
+  final String apiUrl = '$baseUrl/api/tickets';
   final storage = const FlutterSecureStorage(); // Instancia de almacenamiento seguro
 
   // Método para recuperar el token almacenado

@@ -22,10 +22,11 @@ class GasTicketListScreenState extends State<GasTicketListScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Gas Ticket')),
-      body: FutureBuilder<List<GasTicket>>(
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.only(top: 6.0), // Espacio superior de 50px
+      child: FutureBuilder<List<GasTicket>>(
         future: _ticketListFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -40,6 +41,30 @@ class GasTicketListScreenState extends State<GasTicketListScreen>
           }
         },
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     // appBar: AppBar(title: const Text('Gas Ticket')),
+  //     body: FutureBuilder<List<GasTicket>>(
+  //       future: _ticketListFuture,
+  //       builder: (context, snapshot) {
+  //         if (snapshot.connectionState == ConnectionState.waiting) {
+  //           return const Center(child: CircularProgressIndicator());
+  //         } else if (snapshot.hasError) {
+  //           return Center(child: Text('Error: ${snapshot.error}'));
+  //         } else if (snapshot.hasData) {
+  //           final tickets = snapshot.data!;
+  //           return TicketListView(tickets: tickets);
+  //         } else {
+  //           return const Center(child: Text('No tickets available.'));
+  //         }
+  //       },
+  //     ),
+  //   );
+  // }
 }

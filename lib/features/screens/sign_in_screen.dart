@@ -39,6 +39,8 @@ class SignInScreenState extends State<SignInScreen> {
       if (_currentUser != null) {
         logger.i('Foto de usuario: ${_currentUser!.photoUrl}'); // Verifica la URL aquí
         await _storage.write(key: 'userPhotoUrl', value: _currentUser!.photoUrl);
+        logger.i('Nombre de usuario: ${_currentUser!.displayName}');
+        await _storage.write(key: 'displayName', value: _currentUser!.displayName);
       }
     }
     setState(() {});

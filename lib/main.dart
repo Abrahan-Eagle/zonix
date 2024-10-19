@@ -17,9 +17,17 @@ import 'package:zonix/features/GasTicket/another_button/screens/other_screen.dar
 import 'package:zonix/features/GasTicket/gas_button/screens/gas_ticket_list_screen.dart'; // Asegúrate de importar esta pantalla
 // import 'dart:io';
 // import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
+
+
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
+
+
 
 // Configuración del logger
 final logger = Logger();
@@ -32,7 +40,8 @@ final logger = Logger();
 //   }
 // }
 
-void main() {
+// void main() {
+Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initialization();
@@ -44,7 +53,7 @@ void main() {
 
 
 
-
+ await dotenv.load();
   //  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
@@ -126,7 +135,7 @@ class MainRouterState extends State<MainRouter> {
     final token = await _storage.read(key: 'token');
     logger.i('Retrieved token: $token');
     final response = await http.get(
-      Uri.parse('http://192.168.0.102:8000/api/auth/user'),
+      Uri.parse('$baseUrl/api/auth/user'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

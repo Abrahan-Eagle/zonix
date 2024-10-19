@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage(); // Inicializa _storage
-
+final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
 class ApiService {
   // Enviar el token al backend
   Future<http.Response> sendTokenToBackend(String? result) async {
@@ -25,7 +28,7 @@ class ApiService {
       });
 
       final response = await http.post(
-        Uri.parse('http://192.168.0.102:8000/api/auth/google'), // Cambia por la URL de tu backend
+      Uri.parse( '$baseUrl/api/auth/google'), // Cambia por la URL de tu backend
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -82,7 +85,7 @@ class ApiService {
   // Método para cerrar sesión
   Future<http.Response> logout(String token) async {
     final response = await http.post(
-      Uri.parse('http://192.168.0.102:8000/api/auth/logout'),
+      Uri.parse('$baseUrl/api/auth/logout'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -96,7 +99,7 @@ class ApiService {
     final token = await _storage.read(key: 'token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('http://192.168.0.102:8000/api/auth/protected-endpoint'),
+        Uri.parse('$baseUrl/api/auth/protected-endpoint'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

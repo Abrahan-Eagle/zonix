@@ -38,7 +38,7 @@ class TicketDetailsDrawer extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(6.0),
       child: Stack(
         children: [
           _buildFlutterLogo(ticket.status),
