@@ -21,46 +21,78 @@ class SettingsPage2 extends StatefulWidget {
 
 
 class _SettingsPage2State extends State<SettingsPage2> {
-  @override
-  Widget build(BuildContext context) {
-    // Obtiene el UserProvider, asegurándote de que no se escuche cambios innecesarios
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+  // @override
+  // Widget build(BuildContext context) {
+  //   // Obtiene el UserProvider, asegurándote de que no se escuche cambios innecesarios
+  //   final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Configuraciones"),
-      ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: ListView(
-            children: [
-              _buildGeneralSection(),
-              const Divider(),
-              _buildServiceSection(),
-              const Divider(),
-              _buildHelpAndLogoutSection(userProvider),
-            ],
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: const Text("Configuraciones"),
+  //     ),
+  //     body: Center(
+  //       child: Container(
+  //         constraints: const BoxConstraints(maxWidth: 400),
+  //         child: ListView(
+  //           children: [
+  //             _buildGeneralSection(),
+  //             const Divider(),
+  //             _buildServiceSection(),
+  //             const Divider(),
+  //             _buildHelpAndLogoutSection(userProvider),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
+
+@override
+Widget build(BuildContext context) {
+  return Consumer<UserProvider>(
+    builder: (context, userProvider, child) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Configuraciones"),
+        ),
+        body: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: ListView(
+              children: [
+                _buildGeneralSection(userProvider),
+                const Divider(),
+                _buildServiceSection(),
+                const Divider(),
+                _buildHelpAndLogoutSection(userProvider),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
+}
+
+
 // Sección de Configuración General
-Widget _buildGeneralSection() {
+Widget _buildGeneralSection(UserProvider userProvider) {
   return _SingleSection(
     title: "Configuración General",
     children: [
       // Perfil del usuario
-      _CustomListTile(
-        title: "Perfil",
+       _CustomListTile(
+        title: "Perfil", // Muestra el nombre del usuario
         icon: Icons.person_outline_rounded, // Ícono de perfil
         onTap: () {
+          final userId = userProvider.userId; // Obtén el ID del usuario
+          // No es necesario comprobar si userId es null si es int no anulable
           Navigator.push(
             context,
             MaterialPageRoute(
-              // builder: (context) => const ProfilePage1(),
-               builder: (context) => const ProfilePagex(userId: 11),
+              builder: (context) => ProfilePagex(userId: userId),
             ),
           );
         },
@@ -108,6 +140,70 @@ Widget _buildGeneralSection() {
     ],
   );
 }
+
+
+// // Sección de Configuración General
+// Widget _buildGeneralSection() {
+//   return _SingleSection(
+//     title: "Configuración General",
+//     children: [
+//       // Perfil del usuario
+//       _CustomListTile(
+//         title: "Perfil",
+//         icon: Icons.person_outline_rounded, // Ícono de perfil
+//         onTap: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               // builder: (context) => const ProfilePage1(),
+//                builder: (context) => const ProfilePagex(userId: 11),
+//             ),
+//           );
+//         },
+//       ),
+//       // Documentos asociados
+//       _CustomListTile(
+//         title: "Documentos",
+//         icon: Icons.folder_outlined, // Ícono de documentos
+//         onTap: () {
+//           logger.i("Documentos seleccionados");
+//         },
+//       ),
+//       // Dirección del usuario
+//       _CustomListTile(
+//         title: "Dirección",
+//         icon: Icons.location_on_outlined, // Ícono de ubicación
+//         onTap: () {
+//           logger.i("Dirección seleccionada");
+//         },
+//       ),
+//       // Carta de vecinos
+//       _CustomListTile(
+//         title: "Carta de vecinos",
+//         icon: Icons.groups_outlined, // Ícono para asociaciones/comunidad
+//         onTap: () {
+//           logger.i("Carta de vecinos seleccionada");
+//         },
+//       ),
+//       // Teléfonos de contacto
+//       _CustomListTile(
+//         title: "Teléfonos",
+//         icon: Icons.phone_outlined, // Ícono de teléfono
+//         onTap: () {
+//           logger.i("Teléfonos seleccionados");
+//         },
+//       ),
+//       // Correos electrónicos
+//       _CustomListTile(
+//         title: "Correos electrónicos",
+//         icon: Icons.email_outlined, // Ícono de correos electrónicos
+//         onTap: () {
+//           logger.i("Correos electrónicos seleccionados");
+//         },
+//       ),
+//     ],
+//   );
+// }
 
 // Sección de Servicios
 Widget _buildServiceSection() {

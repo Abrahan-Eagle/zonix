@@ -47,7 +47,7 @@ class TicketListViewState extends State<TicketListView> with TickerProviderState
   void _showTicketDetails(GasTicket ticket) {
     _toggleDrawer();
     setState(() {
-      _selectedTicket = ticket;
+      _selectedTicket = ticket; // Actualiza el ticket seleccionado
     });
     _staggeredController.forward();
   }
@@ -78,7 +78,7 @@ class TicketListViewState extends State<TicketListView> with TickerProviderState
         ),
         TicketDetailsDrawer(
           controller: _drawerSlideController,
-          selectedTicket: _selectedTicket,
+          selectedTicket: _selectedTicket, // Se pasa el ticket seleccionado
           staggeredController: _staggeredController,
         ),
       ],

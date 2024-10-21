@@ -10,61 +10,47 @@ class GasTicketListScreen extends StatefulWidget {
   GasTicketListScreenState createState() => GasTicketListScreenState();
 }
 
-class GasTicketListScreenState extends State<GasTicketListScreen>
-    with TickerProviderStateMixin {
+class GasTicketListScreenState extends State<GasTicketListScreen> with TickerProviderStateMixin {
   final GasTicketService _ticketService = GasTicketService();
-  late Future<List<GasTicket>> _ticketListFuture;
+  List<GasTicket>? _ticketList;
 
   @override
   void initState() {
     super.initState();
-    _ticketListFuture = _ticketService.fetchGasTickets();
+    _loadTickets(); // Cargar tickets al inicio
+  }
+
+  // Método para cargar tickets
+  Future<void> _loadTickets() async {
+    try {
+      final tickets = await _ticketService.fetchGasTickets();
+      setState(() {
+        _ticketList = tickets; // Actualizar el estado
+      });
+    } catch (e) {
+      // Manejar el error si es necesario
+      print('Error al cargar tickets: $e');
+    }
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Padding(
-      padding: const EdgeInsets.only(top: 6.0), // Espacio superior de 50px
-      child: FutureBuilder<List<GasTicket>>(
-        future: _ticketListFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            final tickets = snapshot.data!;
-            return TicketListView(tickets: tickets);
-          } else {
-            return const Center(child: Text('No tickets available.'));
-          }
-        },
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.only(top: 6.0), // Espacio superior de 50px
+        child: _ticketList == null
+            ? const Center(child: CircularProgressIndicator())
+            : _ticketList!.isEmpty
+                ? const Center(child: Text('No tickets available.'))
+                : TicketListView(tickets: _ticketList!),
       ),
-    ),
-  );
-}
-
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     // appBar: AppBar(title: const Text('Gas Ticket')),
-  //     body: FutureBuilder<List<GasTicket>>(
-  //       future: _ticketListFuture,
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.waiting) {
-  //           return const Center(child: CircularProgressIndicator());
-  //         } else if (snapshot.hasError) {
-  //           return Center(child: Text('Error: ${snapshot.error}'));
-  //         } else if (snapshot.hasData) {
-  //           final tickets = snapshot.data!;
-  //           return TicketListView(tickets: tickets);
-  //         } else {
-  //           return const Center(child: Text('No tickets available.'));
-  //         }
-  //       },
-  //     ),
-  //   );
-  // }
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Simulación de añadir un nuevo ticket y recargar la lista
+          _loadTickets();
+        },
+        child: const Icon(Icons.refresh), // Icono de refrescar
+      ),
+    );
+  }
 }

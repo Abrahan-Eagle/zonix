@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
 import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
 
-
-class TicketDetailsDrawer extends StatelessWidget {
+class TicketDetailsDrawer extends StatefulWidget {
   final AnimationController controller;
   final GasTicket? selectedTicket;
   final AnimationController staggeredController;
@@ -16,16 +15,21 @@ class TicketDetailsDrawer extends StatelessWidget {
   });
 
   @override
+  _TicketDetailsDrawerState createState() => _TicketDetailsDrawerState();
+}
+
+class _TicketDetailsDrawerState extends State<TicketDetailsDrawer> {
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: controller,
+      animation: widget.controller,
       builder: (context, child) {
         return Transform.scale(
-          scale: controller.value,
+          scale: widget.controller.value,
           alignment: Alignment.centerRight,
-          child: controller.isDismissed
+          child: widget.controller.isDismissed
               ? const SizedBox()
-              : _buildTicketDetails(context, selectedTicket),
+              : _buildTicketDetails(context, widget.selectedTicket),
         );
       },
     );
@@ -61,9 +65,9 @@ class TicketDetailsDrawer extends StatelessWidget {
       children: [
         Expanded(
           child: AnimatedBuilder(
-            animation: staggeredController,
+            animation: widget.staggeredController,
             builder: (context, child) {
-              final opacity = (staggeredController.value - 0.1).clamp(0.0, 1.0);
+              final opacity = (widget.staggeredController.value - 0.1).clamp(0.0, 1.0);
               return Opacity(
                 opacity: opacity,
                 child: Text(
@@ -81,7 +85,7 @@ class TicketDetailsDrawer extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.close, size: 30),
           onPressed: () {
-            controller.reverse();
+            widget.controller.reverse();
           },
         ),
       ],
@@ -97,9 +101,9 @@ class TicketDetailsDrawer extends StatelessWidget {
 
     return ticketDetails.map((detail) {
       return AnimatedBuilder(
-        animation: staggeredController,
+        animation: widget.staggeredController,
         builder: (context, child) {
-          final opacity = (staggeredController.value - 0.1).clamp(0.0, 1.0);
+          final opacity = (widget.staggeredController.value - 0.1).clamp(0.0, 1.0);
           return Opacity(
             opacity: opacity,
             child: Padding(

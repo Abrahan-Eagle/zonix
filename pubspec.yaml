@@ -83,6 +83,7 @@ flutter:
     - assets/images/splash_logo.png
     - assets/images/splash_logo_dark.png
     - assets/icon/icon1.png
+    - assets/default_avatar.png
     - .env
 
 

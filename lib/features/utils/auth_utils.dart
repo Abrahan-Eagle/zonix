@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 
@@ -62,7 +64,15 @@ class AuthUtils {
     }
   }
 
-  // Métodos para guardar datos del usuario (nombre, correo, foto)
+static Future<void> saveUserId(int userId) async {
+    await _storage.write(key: 'userId', value: userId.toString()); // Convertir a String
+  }
+
+  // Obtiene el ID del usuario
+  static Future<int?> getUserId() async {
+    final userIdString = await _storage.read(key: 'userId'); // Lee como String
+    return userIdString != null ? int.tryParse(userIdString) : null; // Convertir a int
+  }
   static Future<void> saveUserName(String userName) async {
     await _storage.write(key: 'userName', value: userName);
   }
@@ -75,7 +85,8 @@ class AuthUtils {
     await _storage.write(key: 'userPhotoUrl', value: photoUrl);
   }
 
-  // Métodos para obtener los datos del usuario
+
+
   static Future<String?> getUserName() async {
     return await _storage.read(key: 'userName');
   }

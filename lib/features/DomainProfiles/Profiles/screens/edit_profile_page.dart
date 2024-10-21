@@ -17,7 +17,7 @@ class EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   Profile? _profile;
   final TextEditingController _dateController = TextEditingController();
-  File? _imageFile; // Almacenar imagen seleccionada.
+  File? _imageFile; 
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -29,7 +29,7 @@ class EditProfilePageState extends State<EditProfilePage> {
   Future<void> _loadProfile() async {
     _profile = await ProfileService().getProfileById(widget.userId);
     if (_profile != null) {
-      _dateController.text = _profile?.dateOfBirth ?? '';
+      _dateController.text = _profile!.dateOfBirth; 
       if (mounted) setState(() {});
     }
   }
@@ -66,7 +66,7 @@ class EditProfilePageState extends State<EditProfilePage> {
         await ProfileService().updateProfile(
           _profile!.id,
           _profile!,
-          imageFile: _imageFile, // Pasar la imagen al servicio.
+          imageFile: _imageFile, 
         );
 
         if (mounted) {
@@ -102,8 +102,7 @@ class EditProfilePageState extends State<EditProfilePage> {
               TextFormField(
                 initialValue: _profile!.firstName,
                 decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Ingrese su nombre' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Ingrese su nombre' : null,
                 onSaved: (value) {
                   if (value != null) {
                     _profile = _profile!.copyWith(firstName: value);
@@ -124,8 +123,7 @@ class EditProfilePageState extends State<EditProfilePage> {
               TextFormField(
                 initialValue: _profile!.lastName,
                 decoration: const InputDecoration(labelText: 'Apellido'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Ingrese su apellido' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Ingrese su apellido' : null,
                 onSaved: (value) {
                   if (value != null) {
                     _profile = _profile!.copyWith(lastName: value);
@@ -153,9 +151,7 @@ class EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
                 readOnly: true,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Seleccione una fecha'
-                    : null,
+                validator: (value) => value == null || value.isEmpty ? 'Seleccione una fecha' : null,
               ),
               const SizedBox(height: 16),
               ElevatedButton(

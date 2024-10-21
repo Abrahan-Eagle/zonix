@@ -1,86 +1,108 @@
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Asegúrate de agregar esta dependencia en pubspec.yaml
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
+import 'package:logger/logger.dart';
 
-class ProfilePagex extends StatefulWidget {
+final logger = Logger();
+
+class ProfileModel with ChangeNotifier {
+  Profile? _profile;
+  bool _isLoading = true;
+
+  Profile? get profile => _profile;
+  bool get isLoading => _isLoading;
+
+  Future<void> loadProfile(int userId) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      _profile = await ProfileService().getProfileById(userId);
+    } catch (e) {
+      _profile = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void updateProfile(Profile newProfile) {
+    _profile = newProfile;
+    notifyListeners();
+  }
+}
+
+class ProfilePagex extends StatelessWidget {
   final int userId;
 
   const ProfilePagex({super.key, required this.userId});
 
-  @override
-  ProfilePageState createState() => ProfilePageState();
+ @override
+Widget build(BuildContext context) {
+  return ChangeNotifierProvider(
+    create: (_) => ProfileModel()..loadProfile(userId),
+    child: Consumer<ProfileModel>(
+      builder: (context, profileModel, child) {
+        if (profileModel.isLoading) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Perfil')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // Si no hay perfil, redirige a la página de creación de perfil
+        if (profileModel.profile == null) {
+          Future.microtask(() {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => CreateProfilePage(userId: userId)),
+            );
+          });
+          return const SizedBox(); // Retorna un widget vacío mientras se redirige
+        }
+
+        return Scaffold(
+          body: Column(
+            children: [
+              const Expanded(flex: 2, child: _TopPortion()), // Encabezado visual
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(0.0),
+                  child: _buildProfileDetails(context, profileModel.profile!), 
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
 }
 
-class ProfilePageState extends State<ProfilePagex> {
-  Profile? _profile;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    try {
-      _profile = await ProfileService().getProfileById(widget.userId);
-    } catch (e) {
-      _profile = null;
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Perfil')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Scaffold(
-      body: Column(
-        children: [
-          const Expanded(flex: 2, child: _TopPortion()), // Encabezado visual
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(0.0),
-              child: _profile != null ? _buildProfileDetails() : _buildNoProfile(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileDetails() {
+  Widget _buildProfileDetails(BuildContext context, Profile profile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildProfileField('Nombre', _profile!.firstName),
-        _buildProfileField('Segundo Nombre', _profile!.middleName ?? 'N/A'),
-        _buildProfileField('Apellido', _profile!.lastName),
-        _buildProfileField('Segundo Apellido', _profile!.secondLastName ?? 'N/A'),
-        _buildProfileField('Fecha de Nacimiento', _profile!.dateOfBirth ?? 'N/A'),
-        _buildProfileField('Estado Civil', _profile!.maritalStatus ?? 'N/A'),
-        _buildProfileField('Sexo', _profile!.sex),
+        _buildProfileField('Nombre', profile.firstName),
+        _buildProfileField('Segundo Nombre', profile.middleName ?? 'N/A'),
+        _buildProfileField('Apellido', profile.lastName),
+        _buildProfileField('Segundo Apellido', profile.secondLastName ?? 'N/A'),
+        _buildProfileField('Fecha de Nacimiento', profile.dateOfBirth ?? 'N/A'),
+        _buildProfileField('Estado Civil', profile.maritalStatus ?? 'N/A'),
+        _buildProfileField('Sexo', profile.sex),
         const Spacer(),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             FloatingActionButton.extended(
-              onPressed: () => _navigateToEditOrCreatePage(),
-              label: _profile == null ? const Text('Crear Perfil') : const Text('Editar Perfil'),
-              icon: _profile == null ? const Icon(Icons.person_add) : const Icon(Icons.edit),
+              onPressed: () => _navigateToEditOrCreatePage(context, profile),
+              label: profile == null ? const Text('Crear Perfil') : const Text('Editar Perfil'),
+              icon: profile == null ? const Icon(Icons.person_add) : const Icon(Icons.edit),
             ),
           ],
         ),
@@ -98,12 +120,15 @@ class ProfilePageState extends State<ProfilePagex> {
     );
   }
 
-  void _navigateToEditOrCreatePage() {
-    final route = _profile == null
-        ? MaterialPageRoute(builder: (context) => CreateProfilePage(userId: widget.userId))
-        : MaterialPageRoute(builder: (context) => EditProfilePage(userId: _profile!.userId));
+  void _navigateToEditOrCreatePage(BuildContext context, Profile profile) {
+    final route = profile == null
+        ? MaterialPageRoute(builder: (context) => CreateProfilePage(userId: profile.userId))
+        : MaterialPageRoute(builder: (context) => EditProfilePage(userId: profile.userId));
 
-    Navigator.push(context, route).then((_) => _loadProfile());
+    Navigator.push(context, route).then((_) {
+      // Carga nuevamente el perfil después de editar o crear
+      Provider.of<ProfileModel>(context, listen: false).loadProfile(profile.userId);
+    });
   }
 
   Widget _buildProfileField(String etiqueta, String valor) {
@@ -209,7 +234,7 @@ class _TopPortion extends StatelessWidget {
   }
 
   ImageProvider<Object>? _buildProfileImage(BuildContext context) {
-    final profile = context.findAncestorStateOfType<ProfilePageState>()?._profile;
+    final profile = context.read<ProfileModel>().profile;
     if (profile?.photo != null) {
       return NetworkImage(profile!.photo!);
     }

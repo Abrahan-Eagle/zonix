@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 // import 'package:zonix/features/DomainProfiles/Profiles/utils/constants.dart';
 import 'package:logger/logger.dart';
@@ -23,13 +24,15 @@ class ProfileService {
 
   // Recupera un perfil por ID.
   Future<Profile?> getProfileById(int id) async {
+        logger.i('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $id');
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/profiles/$id'),
+      Uri.parse('$baseUrl/api/profiles/$id'),
       headers: {'Authorization': 'Bearer $token'},
     );
-
+      
     if (response.statusCode == 200) {
+    
       final data = jsonDecode(response.body);
       return Profile.fromJson(data);
     } else {
@@ -41,7 +44,7 @@ class ProfileService {
   Future<List<Profile>> getAllProfiles() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/profiles'),
+      Uri.parse('$baseUrl/api/profiles'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -52,63 +55,97 @@ class ProfileService {
       throw Exception('Error al obtener los perfiles');
     }
   }
-
-  // Crea un nuevo perfil.
-  Future<void> createProfile(Profile profile, {File? imageFile}) async {
-    logger.i(profile);
-    logger.i(imageFile);
-
+// Crea un nuevo perfil.
+Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async {
+  try {
     final token = await _getToken();
-    final uri = Uri.parse('$baseUrl/profiles');
+    if (token == null) throw Exception('Token no encontrado.');
+
+    final uri = Uri.parse('$baseUrl/api/profiles');
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'
+      ..headers['Accept'] = 'application/json'
       ..fields['firstName'] = profile.firstName
+      ..fields['middleName'] = profile.middleName
       ..fields['lastName'] = profile.lastName
+      ..fields['secondLastName'] = profile.secondLastName
+      ..fields['date_of_birth'] = profile.dateOfBirth
       ..fields['maritalStatus'] = profile.maritalStatus
       ..fields['sex'] = profile.sex
-      ..fields['date_of_birth'] = profile.dateOfBirth;
+      ..fields['user_id'] = userId.toString(); // Agregar user_id
 
+    // Agrega la imagen si está presente.
     if (imageFile != null) {
-      final image = await http.MultipartFile.fromPath('photo_users', imageFile.path);
+      final image = await http.MultipartFile.fromPath(
+        'photo_users',
+        imageFile.path,
+        contentType: MediaType('image', 'jpeg'), // Ajusta si necesitas otro formato.
+      );
       request.files.add(image);
     }
 
-    logger.i(request);
     final response = await request.send();
+
+    // Loguea el response recibido.
+    logger.i('Response Status: ${response.statusCode}');
     final responseData = await http.Response.fromStream(response);
 
-    if (responseData.statusCode != 200) {
-      throw Exception('Error al crear el perfil');
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      logger.i('Perfil creado exitosamente: ${responseData.body}');
+    } else {
+      logger.e('Error al crear el perfil: ${responseData.body}');
+      throw Exception('Error al crear el perfil: ${responseData.body}');
     }
+  } catch (e) {
+    logger.e('Excepción: $e');
+    rethrow;
   }
+}
 
-  // Actualiza un perfil existente.
+
+    // Actualiza un perfil existente.
   Future<void> updateProfile(int id, Profile profile, {File? imageFile}) async {
-    final token = await _getToken();
-    final uri = Uri.parse('$baseUrl/profiles/$id');
-    final request = http.MultipartRequest('PUT', uri)
-      ..headers['Authorization'] = 'Bearer $token'
-      ..fields['firstName'] = profile.firstName
-      ..fields['lastName'] = profile.lastName
-      ..fields['maritalStatus'] = profile.maritalStatus
-      ..fields['sex'] = profile.sex
-      ..fields['date_of_birth'] = profile.dateOfBirth;
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('Token no encontrado.');
 
-    if (imageFile != null) {
-       logger.i('Imagen añadidaxxxxxxxxxxxxxxxxxxxxxxxxxxx: $imageFile');
-      final image = await http.MultipartFile.fromPath('photo_users', imageFile.path);
-       logger.i('Imagenimageimageimageimage añadidaxxxxxxxxxxxxxxxxxxxxxxxxxxx: $image');
-      request.files.add(image);
-       logger.i('requestrequestrequestrequestrequestrequestrequestrequest 1111111111111111111111111111111111: $request');
-    }
+      final uri = Uri.parse('$baseUrl/api/profiles/$id');
+      final request = http.MultipartRequest('POST', uri) // Cambiar PUT a POST si tu API requiere POST.
+        ..headers['Authorization'] = 'Bearer $token'
+        ..headers['Accept'] = 'application/json'
+        ..fields['firstName'] = profile.firstName
+        ..fields['middleName'] = profile.middleName
+        ..fields['lastName'] = profile.lastName
+        ..fields['secondLastName'] = profile.secondLastName
+        ..fields['date_of_birth'] = profile.dateOfBirth
+        ..fields['maritalStatus'] = profile.maritalStatus
+        ..fields['sex'] = profile.sex;
 
-    final response = await request.send();
-     logger.i('ddddddddddddddddddddddddddddd 1111111111111111111111111111111111: $response');
-    final responseData = await http.Response.fromStream(response);
-     logger.i('responseDataresponseDataresponseDataresponseDataresponseDataresponseData: $responseData');
+      // Agrega la imagen si está presente.
+      if (imageFile != null) {
+        final image = await http.MultipartFile.fromPath(
+          'photo_users',
+          imageFile.path,
+          contentType: MediaType('image', 'jpeg'), // Ajusta si necesitas otro formato.
+        );
+        request.files.add(image);
+      }
 
-    if (responseData.statusCode != 200) {
-      throw Exception('Error al actualizar el perfil');
+      final response = await request.send();
+
+      // Loguea el response recibido.
+      logger.i('Response Status: ${response.statusCode}');
+      final responseData = await http.Response.fromStream(response);
+
+      if (response.statusCode == 200) {
+        logger.i('Perfil actualizado exitosamente: ${responseData.body}');
+      } else {
+        logger.e('Error al actualizar el perfil: ${responseData.body}');
+        throw Exception('Error al actualizar el perfil: ${responseData.body}');
+      }
+    } catch (e) {
+      logger.e('Excepción: $e');
+      rethrow;
     }
   }
 }

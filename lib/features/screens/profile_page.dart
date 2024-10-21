@@ -5,8 +5,9 @@ import 'package:zonix/features/services/auth/google_sign_in_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:logger/logger.dart';
 final GoogleSignInService googleSignInService = GoogleSignInService();
+final logger = Logger();
 bool isAuthenticated = false;
 GoogleSignInAccount? _currentUser;
 const FlutterSecureStorage _storage = FlutterSecureStorage();

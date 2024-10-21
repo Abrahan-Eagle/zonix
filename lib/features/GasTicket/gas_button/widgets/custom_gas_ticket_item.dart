@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
 
-
-final StatusProvider statusProvider = StatusProvider();
-
-class CustomGasTicketItem extends StatelessWidget {
+class CustomGasTicketItem extends StatefulWidget {
   final Widget thumbnail;
   final String id;
   final String status;
@@ -12,14 +9,20 @@ class CustomGasTicketItem extends StatelessWidget {
   final String timePosition;
 
   const CustomGasTicketItem({
-    super.key,
+    Key? key,
     required this.thumbnail,
     required this.id,
     required this.status,
     required this.appointmentDate,
     required this.timePosition,
-  });
+  }) : super(key: key);
 
+  @override
+  _CustomGasTicketItemState createState() => _CustomGasTicketItemState();
+}
+
+class _CustomGasTicketItemState extends State<CustomGasTicketItem> {
+  final StatusProvider statusProvider = StatusProvider(); // Mover aquí para evitar problemas de reactividad.
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +40,8 @@ class CustomGasTicketItem extends StatelessWidget {
             width: 56.0,
             height: 56.0,
             child: ImageIcon(
-              statusProvider.getStatusIcon(status),
-              color: statusProvider.getStatusColor(status), // Color según el estado
+              statusProvider.getStatusIcon(widget.status),
+              color: statusProvider.getStatusColor(widget.status), // Color según el estado
               size: 56.0,
             ),
           ),
@@ -47,7 +50,7 @@ class CustomGasTicketItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Ticket #$id',
+              'Ticket #${widget.id}',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
             ),
             const SizedBox(height: 4),
@@ -59,13 +62,13 @@ class CustomGasTicketItem extends StatelessWidget {
                   style: TextStyle(color: estadoLabelColor),
                 ),
                 Text(
-                  statusProvider.getStatusSpanish(status), // Llamada a la función para obtener el estado en español
-                  style: TextStyle(color: statusProvider.getStatusColor(status), fontWeight: FontWeight.bold), // Color según el estado
+                  statusProvider.getStatusSpanish(widget.status), // Llamada a la función para obtener el estado en español
+                  style: TextStyle(color: statusProvider.getStatusColor(widget.status), fontWeight: FontWeight.bold), // Color según el estado
                 ),
               ],
             ),
-            Text('Cita: $appointmentDate', style: TextStyle(color: textColor)),
-            Text('Posición de tiempo: $timePosition', style: TextStyle(color: textColor)),
+            Text('Cita: ${widget.appointmentDate}', style: TextStyle(color: textColor)),
+            Text('Posición de tiempo: ${widget.timePosition}', style: TextStyle(color: textColor)),
           ],
         ),
       ),

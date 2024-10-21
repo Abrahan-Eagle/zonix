@@ -131,28 +131,31 @@ class MainRouterState extends State<MainRouter> {
     logger.i('Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
   }
 
-  Future<Map<String, dynamic>> _getUserDetails() async {
-    final token = await _storage.read(key: 'token');
-    logger.i('Retrieved token: $token');
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/auth/user'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+  
 
-     if (response.statusCode == 200) {
-      final userDetails = jsonDecode(response.body);
-      final role = await _storage.read(key: 'role'); // Asegúrate de que el rol se esté almacenando correctamente
-      logger.i('User details: $userDetails');
-      logger.i('User role: $role');
-      return {'users': userDetails, 'role': role};
-    } else {
-      logger.e('Error: ${response.statusCode}');
-      throw Exception('Error al obtener detalles del usuario');
-    }
-  }
+
+  // Future<Map<String, dynamic>> _getUserDetails() async {
+  //   final token = await _storage.read(key: 'token');
+  //   logger.i('Retrieved token: $token');
+  //   final response = await http.get(
+  //     Uri.parse('$baseUrl/api/auth/user'),
+  //     headers: {
+  //       'Authorization': 'Bearer $token',
+  //       'Content-Type': 'application/json',
+  //     },
+  //   );
+
+  //    if (response.statusCode == 200) {
+  //     final userDetails = jsonDecode(response.body);
+  //     final role = await _storage.read(key: 'role'); // Asegúrate de que el rol se esté almacenando correctamente
+  //     logger.i('User details: $userDetails');
+  //     logger.i('User role: $role');
+  //     return {'users': userDetails, 'role': role};
+  //   } else {
+  //     logger.e('Error: ${response.statusCode}');
+  //     throw Exception('Error al obtener detalles del usuario');
+  //   }
+  // }
 
 
   List<BottomNavigationBarItem> _getBottomNavItems(int level) {
@@ -241,6 +244,9 @@ class MainRouterState extends State<MainRouter> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+
     return Scaffold(
     appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -376,7 +382,7 @@ class MainRouterState extends State<MainRouter> {
       // ),
 
         body: FutureBuilder<Map<String, dynamic>>(
-      future: _getUserDetails(),
+      future: userProvider.getUserDetails(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
