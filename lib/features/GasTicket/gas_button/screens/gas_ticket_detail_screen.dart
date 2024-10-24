@@ -94,7 +94,7 @@ class _TicketDetailsDrawerState extends State<TicketDetailsDrawer> {
 
   List<Widget> _buildTicketDetailsItems(GasTicket ticket) {
     final ticketDetails = [
-      'Ticket #: ${ticket.id}',
+      'Ticket #: ${ticket.queuePosition}',
       'Cita: ${ticket.appointmentDate}',
       'Posición de tiempo: ${ticket.timePosition}',
     ];

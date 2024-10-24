@@ -68,7 +68,7 @@ class TicketListViewState extends State<TicketListView> with TickerProviderState
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                id: ticket.id.toString(),
+                queuePosition: ticket.queuePosition.toString(),
                 status: ticket.status,
                 appointmentDate: ticket.appointmentDate,
                 timePosition: ticket.timePosition,

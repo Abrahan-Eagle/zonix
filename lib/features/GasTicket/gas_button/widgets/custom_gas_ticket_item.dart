@@ -3,7 +3,7 @@ import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.da
 
 class CustomGasTicketItem extends StatefulWidget {
   final Widget thumbnail;
-  final String id;
+  final String queuePosition;
   final String status;
   final String appointmentDate;
   final String timePosition;
@@ -11,7 +11,7 @@ class CustomGasTicketItem extends StatefulWidget {
   const CustomGasTicketItem({
     Key? key,
     required this.thumbnail,
-    required this.id,
+    required this.queuePosition,
     required this.status,
     required this.appointmentDate,
     required this.timePosition,
@@ -50,7 +50,7 @@ class _CustomGasTicketItemState extends State<CustomGasTicketItem> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Ticket #${widget.id}',
+              'Ticket #${widget.queuePosition}',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
             ),
             const SizedBox(height: 4),
