@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/screens/profile_page.dart';
+import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
 
@@ -36,9 +36,7 @@ Widget build(BuildContext context) {
             child: ListView(
               children: [
                 _buildGeneralSection(userProvider),
-                const Divider(),
-                _buildServiceSection(),
-                const Divider(),
+                 const Divider(),
                 _buildHelpAndLogoutSection(userProvider),
               ],
             ),
@@ -87,11 +85,19 @@ Widget _buildGeneralSection(UserProvider userProvider) {
         },
       ),
       // Carta de vecinos
+    // Bombonas de gas disponibles
       _CustomListTile(
-        title: "Carta de vecinos",
-        icon: Icons.groups_outlined, // Ícono para asociaciones/comunidad
-        onTap: () {
-          logger.i("Carta de vecinos seleccionada");
+        title: "Bombonas de gas",
+        icon: Icons.local_gas_station_outlined, // Ícono relacionado con gas
+          onTap: () {
+          final userId = userProvider.userId; // Obtén el ID del usuario
+          // No es necesario comprobar si userId es null si es int no anulable
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GasCylinderListScreen(userId: userId),
+            ),
+          );
         },
       ),
       // Teléfonos de contacto
@@ -108,36 +114,6 @@ Widget _buildGeneralSection(UserProvider userProvider) {
         icon: Icons.email_outlined, // Ícono de correos electrónicos
         onTap: () {
           logger.i("Correos electrónicos seleccionados");
-        },
-      ),
-    ],
-  );
-}
-
-// Sección de Servicios
-Widget _buildServiceSection() {
-  return _SingleSection(
-    title: "Servicios",
-    children: [
-      // Bombonas de gas disponibles
-      _CustomListTile(
-        title: "Bombonas de gas",
-        icon: Icons.local_gas_station_outlined, // Ícono relacionado con gas
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ProfilePage1(),
-            ),
-          );
-        },
-      ),
-      // Tickets de gas
-      _CustomListTile(
-        title: "Tickets de gas",
-        icon: Icons.receipt_long_outlined, // Ícono relacionado con tickets
-        onTap: () {
-          logger.i("Tickets de gas seleccionados");
         },
       ),
     ],
