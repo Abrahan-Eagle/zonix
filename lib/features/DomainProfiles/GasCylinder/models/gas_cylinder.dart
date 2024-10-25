@@ -5,7 +5,9 @@ class GasCylinder {
   final String? cylinderWeight;
   final DateTime? manufacturingDate;
   final bool approved;
-  final int? companySupplierId; // Nuevo campo para el proveedor
+  final DateTime? createdAt;
+  final int? companySupplierId;
+  final String? photoGasCylinder; // Nuevo campo agregado
 
   GasCylinder({
     required this.gasCylinderCode,
@@ -14,25 +16,31 @@ class GasCylinder {
     this.cylinderWeight,
     this.manufacturingDate,
     this.approved = false,
-    this.companySupplierId, // Inicialización del nuevo campo
+    this.createdAt,
+    this.companySupplierId,
+    this.photoGasCylinder, // Inicialización del nuevo campo
   });
 
-  // Método para crear una instancia de GasCylinder a partir de un JSON
+  // Método para crear una instancia desde JSON
   factory GasCylinder.fromJson(Map<String, dynamic> json) {
     return GasCylinder(
       gasCylinderCode: json['gas_cylinder_code'],
       cylinderQuantity: json['cylinder_quantity'],
       cylinderType: json['cylinder_type'],
       cylinderWeight: json['cylinder_weight'],
-      manufacturingDate: json['manufacturing_date'] != null 
-          ? DateTime.parse(json['manufacturing_date']) 
+      manufacturingDate: json['manufacturing_date'] != null
+          ? DateTime.parse(json['manufacturing_date'])
           : null,
       approved: json['approved'] == 1 || json['approved'] == true,
-      companySupplierId: json['company_supplier_id'], // Asignación del nuevo campo
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      companySupplierId: json['company_supplier_id'],
+      photoGasCylinder: json['photo_gas_cylinder'], // Asignación del nuevo campo
     );
   }
 
-  // Método para convertir una instancia de GasCylinder a JSON
+  // Método para convertir a JSON
   Map<String, dynamic> toJson() {
     return {
       'gas_cylinder_code': gasCylinderCode,
@@ -41,7 +49,9 @@ class GasCylinder {
       'cylinder_weight': cylinderWeight,
       'manufacturing_date': manufacturingDate?.toIso8601String(),
       'approved': approved ? 1 : 0,
-      'company_supplier_id': companySupplierId, // Conversión del nuevo campo
+      'created_at': createdAt?.toIso8601String(),
+      'company_supplier_id': companySupplierId,
+      'photo_gas_cylinder': photoGasCylinder, // Conversión del nuevo campo
     };
   }
 }

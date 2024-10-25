@@ -1,139 +1,246 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/providers/status_provider.dart';
 
+class GasCylinderDetailScreen extends StatelessWidget {
+  final GasCylinder cylinder;
 
-class SupplierDetailsDrawer extends StatefulWidget {
-  final AnimationController controller;
-  final GasSupplier? selectedTicket;
-  final AnimationController staggeredController;
+  const GasCylinderDetailScreen({super.key, required this.cylinder});
 
-  const SupplierDetailsDrawer({
-    super.key,
-    required this.controller,
-    required this.selectedTicket,
-    required this.staggeredController,
-  });
-
-  @override
-  _SupplierDetailsDrawerState createState() => _SupplierDetailsDrawerState();
-}
-
-class _SupplierDetailsDrawerState extends State<SupplierDetailsDrawer> {
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: widget.controller.value,
-          alignment: Alignment.centerRight,
-          child: widget.controller.isDismissed
-              ? const SizedBox()
-              : _buildTicketDetails(context, widget.selectedTicket),
-        );
-      },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalle de Bombona'),
+      ),
+      body: _buildCylinderDetails(context),
     );
   }
 
-  Widget _buildTicketDetails(BuildContext context, GasSupplier? ticket) {
-    if (ticket == null) return const SizedBox();
-
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      padding: const EdgeInsets.all(6.0),
+  Widget _buildCylinderDetails(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: double.infinity,
       child: Stack(
         children: [
-          _buildFlutterLogo(ticket.status),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context, ticket),
-              const SizedBox(height: 16),
-              ..._buildTicketDetailsItems(ticket),
-            ],
+          _buildBackgroundImage(context), // Imagen de fondo
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDetailItem(context, 'Código: ${cylinder.gasCylinderCode}', isHeader: true),
+                _buildDetailItem(context, 'Cantidad: ${cylinder.cylinderQuantity ?? 'N/A'}'),
+                _buildDetailItem(
+                  context,
+                  'Estado: ${cylinder.approved ? 'Aprobada' : 'No Aprobada'}',
+                  textColor: cylinder.approved ? Colors.green : Colors.red,
+                ),
+                _buildDetailItem(context, 'Tipo de cilindro: ${cylinder.cylinderType ?? 'N/A'}'),
+                _buildDetailItem(context, 'Tamaño de cilindro: ${cylinder.cylinderWeight ?? 'N/A'}'),
+                _buildDetailItem(context, 'Fecha de producción: ${_formatDate(cylinder.manufacturingDate)}'),
+                _buildDetailItem(context, 'Fecha de Creación: ${_formatDate(cylinder.createdAt)}'),
+                const SizedBox(height: 20),
+                _buildImageButton(context), // Botón de imagen
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, GasSupplier ticket) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: AnimatedBuilder(
-            animation: widget.staggeredController,
-            builder: (context, child) {
-              final opacity = (widget.staggeredController.value - 0.1).clamp(0.0, 1.0);
-              return Opacity(
-                opacity: opacity,
-                child: Text(
-                  StatusProvider().getStatusSpanish(ticket.status),
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    color: StatusProvider().getStatusColor(ticket.status),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.close, size: 30),
-          onPressed: () {
-            widget.controller.reverse();
-          },
-        ),
-      ],
+  Widget _buildImageButton(BuildContext context) {
+    return Center(
+      child: IconButton(
+        iconSize: 100,
+        icon: const Icon(Icons.image, color: Colors.blue),
+        onPressed: () => _showImageDialog(context),
+      ),
     );
   }
 
-  List<Widget> _buildTicketDetailsItems(GasSupplier ticket) {
-    final ticketDetails = [
-      'Ticket #: ${ticket.queuePosition}',
-      'Cita: ${ticket.appointmentDate}',
-      'Posición de tiempo: ${ticket.timePosition}',
-    ];
 
-    return ticketDetails.map((detail) {
-      return AnimatedBuilder(
-        animation: widget.staggeredController,
-        builder: (context, child) {
-          final opacity = (widget.staggeredController.value - 0.1).clamp(0.0, 1.0);
-          return Opacity(
-            opacity: opacity,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Text(
-                detail,
-                style: const TextStyle(fontSize: 20),
+ void _showImageDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        insetPadding: const EdgeInsets.all(10), // Reduce los márgenes del diálogo
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.9, // 90% del ancho de la pantalla
+          height: MediaQuery.of(context).size.height * 0.7, // 70% de la altura
+          child: Column(
+            children: [
+              Expanded(
+                child: Image.network(
+                  cylinder.photoGasCylinder ?? '', // URL de la imagen
+                  fit: BoxFit.contain, // Ajusta la imagen sin recortarla
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Text('Imagen no disponible'),
+                    );
+                  },
+                ),
               ),
-            ),
-          );
-        },
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cerrar', style: TextStyle(fontSize: 18)),
+              ),
+            ],
+          ),
+        ),
       );
-    }).toList();
-  }
+    },
+  );
+}
 
-  Widget _buildFlutterLogo(String status) {
-    return Positioned(
-      right: -100,
-      bottom: -30,
-      child: Opacity(
-        opacity: 0.3,
-        child: Image.asset(
-          'assets/images/splash_logo_dark.png',
-          width: 425,
-          height: 425,
-          fit: BoxFit.cover,
-          color: StatusProvider().getStatusColor(status),
+
+
+  Widget _buildDetailItem(BuildContext context, String text,
+      {bool isHeader = false, Color? textColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: isHeader ? 20 : 16,
+          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
+          color: textColor ?? Theme.of(context).textTheme.bodyMedium?.color,
         ),
       ),
     );
   }
+
+  Widget _buildBackgroundImage(BuildContext context) {
+    Color logoColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
+    return Positioned(
+      right: -110,
+      bottom: -30,
+      child: SizedBox(
+        width: 425,
+        height: 425,
+        child: Opacity(
+          opacity: 0.3,
+          child: Image.asset(
+            'assets/images/splash_logo_dark.png',
+            fit: BoxFit.cover,
+            color: logoColor,
+            colorBlendMode: BlendMode.modulate,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    return date.toLocal().toString().split(' ')[0];
+  }
 }
+
+
+// import 'package:flutter/material.dart';
+// import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
+
+// class GasCylinderDetailScreen extends StatelessWidget {
+//   final GasCylinder cylinder;
+
+//   const GasCylinderDetailScreen({super.key, required this.cylinder});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('Detalle de Bombona'),
+//       ),
+//       body: _buildCylinderDetails(context),
+//     );
+//   }
+
+//   Widget _buildCylinderDetails(BuildContext context) {
+//     return SizedBox(
+//       width: double.infinity,
+//       height: double.infinity, // Asegura que ocupe toda la pantalla
+//       child: Stack(
+//         children: [
+//           _buildBackgroundImage(context), // Imagen de fondo
+//           Padding(
+//             padding: const EdgeInsets.all(16.0), // Ajuste del padding
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 _buildDetailItem(context, 
+//                   'Código: ${cylinder.gasCylinderCode}', 
+//                   isHeader: true,
+//                 ),
+//                 _buildDetailItem(context, 
+//                   'Cantidad: ${cylinder.cylinderQuantity ?? 'N/A'}'),
+//                 _buildDetailItem(
+//                   context,
+//                   'Estado: ${cylinder.approved ? 'Aprobada' : 'No Aprobada'}',
+//                   textColor: cylinder.approved ? Colors.green : Colors.red,
+//                 ),
+//                 _buildDetailItem(context, 
+//                   'Tipo de cilindro: ${cylinder.cylinderType ?? 'N/A'}'),
+//                 _buildDetailItem(context, 
+//                   'Tamaño de cilindro: ${cylinder.cylinderWeight ?? 'N/A'}'),
+//                 _buildDetailItem(context, 
+//                   'Fecha de producción: ${_formatDate(cylinder.manufacturingDate)}'),
+//                 _buildDetailItem(context, 
+//                   'Fecha de Creación: ${_formatDate(cylinder.createdAt)}'),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildDetailItem(BuildContext context, String text, 
+//       {bool isHeader = false, Color? textColor}) {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(vertical: 10.0),
+//       child: Text(
+//         text,
+//         style: TextStyle(
+//           fontSize: isHeader ? 20 : 16,
+//           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
+//           color: textColor ?? Theme.of(context).textTheme.bodyMedium?.color,
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildBackgroundImage(BuildContext context) {
+//     // Define el color basado en el tema actual
+//     Color logoColor = Theme.of(context).brightness == Brightness.dark
+//         ? Colors.white
+//         : Colors.black;
+
+//     return Positioned(
+//       right: -110,
+//       bottom: -30,
+//       child: SizedBox(
+//         width: 425,
+//         height: 425,
+//         child: Opacity(
+//           opacity: 0.3,
+//           child: Image.asset(
+//             'assets/images/splash_logo_dark.png',
+//             fit: BoxFit.cover,
+//             color: logoColor,
+//             colorBlendMode: BlendMode.modulate,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   String _formatDate(DateTime? date) {
+//     if (date == null) return 'N/A';
+//     return date.toLocal().toString().split(' ')[0]; // Formato: YYYY-MM-DD
+//   }
+// }

@@ -14,11 +14,35 @@ class OtherScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Bienvenido a la Otra Pantalla',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            // Uso de RichText para renderizar TextSpan correctamente
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'ZONI',
+                    style: TextStyle(
+                      fontFamily: 'system-ui',
+                      fontSize: 39,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'X',
+                    style: TextStyle(
+                      fontFamily: 'system-ui',
+                      fontSize: 39,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.blueAccent[700]
+                          : Colors.orange,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -30,7 +54,7 @@ class OtherScreen extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
-                // Aquí puedes agregar la lógica para cualquier acción que quieras realizar
+                // Lógica para mostrar un mensaje al presionar el botón
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Botón presionado!')),
                 );
