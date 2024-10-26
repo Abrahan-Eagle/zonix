@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/DomainProfiles/Emails/models/email.dart';
 import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
@@ -103,13 +104,21 @@ Widget _buildGeneralSection(UserProvider userProvider) {
         },
       ),
       // Teléfonos de contacto
-      _CustomListTile(
+     _CustomListTile(
         title: "Teléfonos",
-        icon: Icons.phone_outlined, // Ícono de teléfono
-        onTap: () {
-          logger.i("Teléfonos seleccionados");
+        icon: Icons.phone_outlined, // Ícono relacionado con gas
+          onTap: () {
+          final userId = userProvider.userId; // Obtén el ID del usuario
+          // No es necesario comprobar si userId es null si es int no anulable
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PhoneScreen(userId: userId),
+            ),
+          );
         },
       ),
+      
       // Correos electrónicos
       _CustomListTile(
         title: "Correos electrónicos",

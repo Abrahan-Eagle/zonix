@@ -24,7 +24,7 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear Email'),
+        title: const Text('Registrar Email'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -83,7 +83,7 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
                           ElevatedButton.icon(
                             onPressed: _createEmail,
                             icon: const Icon(Icons.email_outlined),
-                            label: const Text('Crear Email'),
+                            label: const Text('Registrar Email'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 12),
@@ -109,7 +109,7 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
         id: 0, // Se generará en el backend
         profileId: widget.userId,
         email: _emailController.text,
-        isPrimary: true, // Establecer is_primary como true al crear
+        isPrimary: true, // Establecer is_primary como true al Registrar
         status: true,
       );
 
@@ -118,7 +118,7 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
         Navigator.pop(context, true); // Devolver true para indicar éxito
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear el email: $e')),
+          SnackBar(content: Text('Error al Registrar el email: $e')),
         );
       }
     }
