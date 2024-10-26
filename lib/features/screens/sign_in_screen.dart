@@ -101,7 +101,38 @@ class SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inicia sesión')),
+      appBar: AppBar(
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'ZONI',
+                style: TextStyle(
+                  fontFamily: 'system-ui',
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              TextSpan(
+                text: 'X',
+                style: TextStyle(
+                  fontFamily: 'system-ui',
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.blueAccent[700]
+                      : Colors.orange,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: Center(
         child: _currentUser == null ? _buildSignInButton() : _buildUserInfo(),
       ),
@@ -143,12 +174,12 @@ class SignInScreenState extends State<SignInScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
           child: const Text(
-            'Hola',
+            '¡Hola! Inicia sesión para continuar.',
             textAlign: TextAlign.left,
-            style: TextStyle(fontSize: 30),
+            style: TextStyle(fontSize: 20),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
@@ -157,9 +188,9 @@ class SignInScreenState extends State<SignInScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: 'Puedes usar tu cuenta Gmail, para registrarte y entrar a ',
+                  text: 'Usa tu cuenta de Gmail para acceder a ',
                   style: TextStyle(
-                    fontSize: 20, // Tamaño del texto normal
+                    fontSize: 24, // Tamaño del texto normal
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white
                         : Colors.black, // Color adaptado al tema
@@ -169,7 +200,7 @@ class SignInScreenState extends State<SignInScreen> {
                   text: 'ZONI',
                   style: TextStyle(
                     fontFamily: 'system-ui',
-                    fontSize: 21, // Tamaño de fuente diferente para 'ZONIX'
+                    fontSize: 24, // Tamaño de fuente diferente para 'ZONIX'
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white
@@ -181,7 +212,7 @@ class SignInScreenState extends State<SignInScreen> {
                   text: 'X',
                   style: TextStyle(
                     fontFamily: 'system-ui',
-                    fontSize: 21,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.blueAccent[700]

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:zonix/features/DomainProfiles/Emails/models/email.dart';
+import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
@@ -111,9 +113,16 @@ Widget _buildGeneralSection(UserProvider userProvider) {
       // Correos electrónicos
       _CustomListTile(
         title: "Correos electrónicos",
-        icon: Icons.email_outlined, // Ícono de correos electrónicos
-        onTap: () {
-          logger.i("Correos electrónicos seleccionados");
+        icon: Icons.email_outlined, // Ícono relacionado con gas
+          onTap: () {
+          final userId = userProvider.userId; // Obtén el ID del usuario
+          // No es necesario comprobar si userId es null si es int no anulable
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EmailListScreen(userId: userId),
+            ),
+          );
         },
       ),
     ],

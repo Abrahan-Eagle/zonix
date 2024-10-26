@@ -89,6 +89,7 @@ flutter:
     - assets/icon/icon1.png
     - assets/default_avatar.png
     - assets/images/undraw_date_picker_re_r0p8.svg
+    - assets/images/undraw_mention_re_k5xc.svg
     - .env
 
 
