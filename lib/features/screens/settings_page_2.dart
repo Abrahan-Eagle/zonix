@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Emails/models/email.dart';
+import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
@@ -74,9 +74,16 @@ Widget _buildGeneralSection(UserProvider userProvider) {
       // Documentos asociados
       _CustomListTile(
         title: "Documentos",
-        icon: Icons.folder_outlined, // Ícono de documentos
-        onTap: () {
-          logger.i("Documentos seleccionados");
+        icon: Icons.folder_outlined, // Ícono relacionado con gas
+          onTap: () {
+          final userId = userProvider.userId; // Obtén el ID del usuario
+          // No es necesario comprobar si userId es null si es int no anulable
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DocumentListScreen(userId: userId),
+            ),
+          );
         },
       ),
       // Dirección del usuario
