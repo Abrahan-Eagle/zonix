@@ -31,7 +31,7 @@ class _CreateDocumentScreenState extends State<CreateDocumentScreen> {
                 onPressed: () {
                   // Maneja la creación del documento
                 },
-                child: const Text('Guardar'),
+                child: const Text('Guardarxxxxxxxx'),
               ),
             ],
           ),
