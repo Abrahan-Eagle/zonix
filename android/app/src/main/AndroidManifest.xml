@@ -1,177 +1,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 
-   
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <!-- Escribe en el almacenamiento externo (Deprecado en Android 11). -->
-
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:ignore="ScopedStorage"/>
-    <!-- Lee archivos del almacenamiento externo. -->
-
-     <!-- Permisos de Red y Comunicación -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Acceso a internet para realizar solicitudes de red. -->
-
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Verifica si hay conexión de red disponible. -->
-
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- Consulta el estado de la conexión Wi-Fi. -->
-
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <!-- Permite activar o desactivar el Wi-Fi. -->
-
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <!-- Cambia el estado de la red (por ejemplo, activar modo avión). -->
-
-    <!-- <uses-permission android:name="android.permission.BLUETOOTH" /> -->
-    <!-- Permite el uso de Bluetooth. -->
-
-    <!-- <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> -->
-    <!-- Gestiona las configuraciones de Bluetooth (por ejemplo, emparejamiento). -->
-
-    <!-- <uses-permission android:name="android.permission.BLUETOOTH_SCAN" /> -->
-    <!-- Escanea dispositivos Bluetooth cercanos (Android 12+). -->
-
-    <!-- <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" /> -->
-    <!-- Publica anuncios Bluetooth (Android 12+). -->
-
-    <!-- <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> -->
-    <!-- Conecta con dispositivos Bluetooth (Android 12+). -->
-
-    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
-    <!-- Escanea dispositivos Wi-Fi cercanos (Android 13+). -->
-
-    <!-- <uses-permission android:name="android.permission.NFC" /> -->
-    <!-- Permite el uso de comunicación NFC. -->
-
-    <!-- Permisos de Almacenamiento -->
-
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <!-- Gestiona todo el almacenamiento externo (Android 11+). -->
-
-    <!-- <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" /> -->
-    <!-- Accede a la ubicación de archivos multimedia. -->
-
-    <!-- <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> -->
-    <!-- Lee archivos de video (Android 13+). -->
-
-    <!-- <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> -->
-    <!-- Lee archivos de audio (Android 13+). -->
-
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <!-- Lee imágenes (Android 13+). -->
-
-    <!-- Permisos de Ubicación y Sensores -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- Obtiene la ubicación precisa del dispositivo (GPS). -->
-
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Obtiene la ubicación aproximada (por ejemplo, a nivel de ciudad). -->
-
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <!-- Obtiene la ubicación incluso cuando la app está en segundo plano. -->
-
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-    <!-- Detecta la actividad física del usuario. -->
-
-    <uses-permission android:name="android.permission.SENSORS_ALWAYS" />
-    <!-- Permite acceso continuo a los sensores. -->
-
-    <uses-permission android:name="android.permission.BODY_SENSORS" />
-    <!-- Usa sensores corporales (como ritmo cardíaco). -->
-
-    <!-- Permisos de Teléfono y Llamadas -->
-    <!-- <uses-permission android:name="android.permission.CALL_PHONE" /> -->
-    <!-- Permite hacer llamadas telefónicas. -->
-
-    <!-- <uses-permission android:name="android.permission.READ_CALL_LOG" /> -->
-    <!-- Lee el historial de llamadas del teléfono. -->
-
-    <!-- <uses-permission android:name="android.permission.WRITE_CALL_LOG" /> -->
-    <!-- Modifica el historial de llamadas. -->
-
-    <!-- <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" /> -->
-    <!-- Responde llamadas entrantes automáticamente (Android 8+). -->
-
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!-- Lee el estado del teléfono, como la red o el número del dispositivo. -->
-
-    <!-- <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" /> -->
-    <!-- Detecta llamadas salientes. -->
-
-    <!-- <uses-permission android:name="android.permission.ADD_VOICEMAIL" /> -->
-    <!-- Agrega mensajes de voz al buzón de voz. -->
-
-    <!-- Permisos de Mensajería -->
-    <!-- <uses-permission android:name="android.permission.SEND_SMS" /> -->
-    <!-- Envía mensajes SMS. -->
-
-    <!-- <uses-permission android:name="android.permission.RECEIVE_SMS" /> -->
-    <!-- Recibe mensajes SMS. -->
-
-    <!-- <uses-permission android:name="android.permission.READ_SMS" /> -->
-    <!-- Lee mensajes SMS recibidos. -->
-
-    <!-- <uses-permission android:name="android.permission.RECEIVE_MMS" /> -->
-    <!-- Recibe mensajes multimedia (MMS). -->
-
-    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
-    <!-- Recibe mensajes WAP. -->
-
-    <!-- Permisos del Calendario -->
-    <!-- <uses-permission android:name="android.permission.READ_CALENDAR" /> -->
-    <!-- Lee los eventos del calendario. -->
-
-    <!-- <uses-permission android:name="android.permission.WRITE_CALENDAR" /> -->
-    <!-- Modifica los eventos del calendario. -->
-
-    <!-- <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" /> -->
-    <!-- Programa alarmas exactas (Android 12+). -->
-
-    <!-- Permisos de Contactos y Cuentas -->
-    <!-- <uses-permission android:name="android.permission.READ_CONTACTS" /> -->
-    <!-- Lee los contactos del dispositivo. -->
-
-    <!-- <uses-permission android:name="android.permission.WRITE_CONTACTS" /> -->
-    <!-- Modifica los contactos del dispositivo. -->
-
-    <!-- <uses-permission android:name="android.permission.GET_ACCOUNTS" /> -->
-    <!-- Accede a las cuentas registradas en el dispositivo. -->
-
-    <!-- Permisos de Cámara y Audio -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Usa la cámara del dispositivo. -->
-
-    <!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
-    <!-- Graba audio usando el micrófono. -->
-
-    <!-- <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> -->
-    <!-- Modifica la configuración de audio del dispositivo. -->
-
-    <!-- <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" /> -->
-    <!-- Controla el contenido multimedia. -->
-
-    <!-- Permisos del Sistema -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!-- Instala paquetes desde fuentes externas. -->
-
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <!-- Muestra ventanas emergentes sobre otras aplicaciones. -->
-
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- Impide que el dispositivo entre en modo reposo. -->
-
-    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <!-- Modifica las políticas de notificación. -->
-
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Ejecuta servicios en primer plano. -->
-
-    <!-- Permiso de Optimización de Batería -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- Ignora las optimizaciones de batería. -->
-
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="android.permission.SENSORS_ALWAYS"/>
+    <uses-permission android:name="android.permission.BODY_SENSORS"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
 
     <application
         android:usesCleartextTraffic="true"
@@ -198,25 +52,21 @@
             </intent-filter>
         </activity>
 
-        <!-- Meta-data for Google Sign-In -->
         <meta-data
             android:name="com.google.android.gms.auth.api.credentials.ClientId"
-            android:value="608143949661-g749kjpeasc4ktj8frofrc9k6kge5g78.apps.googleusercontent.com" />
+            android:value="608143949661-g749kjpeasc4ktj8frofrc9k6kge5g78.apps.googleusercontent.com"/>
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
+            android:value="@integer/google_play_services_version"/>
         <meta-data
             android:name="com.google.android.gms.auth.api.credentials.API_KEY"
-            android:value="AIzaSyCyVrcmdTiihm5kv0wuAG0xQvPtqL6Ih6s" /> <!-- Tu API key aquí -->
+            android:value="AIzaSyCyVrcmdTiihm5kv0wuAG0xQvPtqL6Ih6s"/>
 
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2" />
+            android:value="2"/>
     </application>
 
-    <!-- Required to query activities that can process text -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

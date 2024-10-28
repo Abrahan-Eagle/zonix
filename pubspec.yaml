@@ -36,6 +36,9 @@ dependencies:
   csc_picker: ^0.2.7
   json_annotation: ^4.9.0
   url_launcher: ^6.3.1
+  mobile_scanner: ^6.0.2
+  image: ^4.3.0
+ 
   
   
 
