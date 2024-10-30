@@ -363,24 +363,7 @@ class MainRouterState extends State<MainRouter> {
 
 
       ),
-      // body: FutureBuilder<Map<String, dynamic>>(
-      //   future: _getUserDetails(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(child: CircularProgressIndicator());
-      //     } else if (snapshot.hasError) {
-      //       logger.e('Error fetching user details: ${snapshot.error}');
-      //       return Center(child: Text('Error: ${snapshot.error}'));
-      //     } else {
-      //       final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
-      //       logger.i('Role fetched: $role');
-      //       return Center(
-      //         child: Text('Rol: $role', style: const TextStyle(fontSize: 24)),
-      //       );
-      //     }
-      //   },
-      // ),
-
+     
         body: FutureBuilder<Map<String, dynamic>>(
       future: userProvider.getUserDetails(),
       builder: (context, snapshot) {

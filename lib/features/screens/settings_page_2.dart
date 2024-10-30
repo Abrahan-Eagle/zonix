@@ -8,7 +8,7 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
-
+import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
 
 // Configuración del logger
 final logger = Logger();
@@ -94,6 +94,24 @@ Widget _buildGeneralSection(UserProvider userProvider) {
           logger.i("Dirección seleccionada");
         },
       ),
+
+
+      _CustomListTile(
+        title: "Dirección",
+        icon: Icons.location_on_outlined, // Ícono relacionado con gas
+          onTap: () {
+          final userId = userProvider.userId; // Obtén el ID del usuario
+          // No es necesario comprobar si userId es null si es int no anulable
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddressPage(userId: userId),
+            ),
+          );
+        },
+      ),
+
+
       // Carta de vecinos
     // Bombonas de gas disponibles
       _CustomListTile(
