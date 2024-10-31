@@ -125,7 +125,7 @@ Future<List<StateModel>> fetchStates(int countryId) async {
     final token = await _getToken();
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/addresses/store'),
+        Uri.parse('$baseUrl/api/addresses'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ Future<List<StateModel>> fetchStates(int countryId) async {
   }
 
   // Método auxiliar para manejar la respuesta de la API
-  T _handleResponse<T>(http.Response response, T Function(dynamic) fromJson) {
+  _handleResponse<T>(http.Response response, T Function(dynamic) fromJson) {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       return fromJson(data);

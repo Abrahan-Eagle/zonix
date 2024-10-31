@@ -1,3 +1,7 @@
+
+
+
+
 import 'package:flutter/material.dart';
 import '../models/adresse.dart';
 import '../models/models.dart';
@@ -123,11 +127,11 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
                   const SizedBox(height: 16.0),
                   if (selectedState != null) _buildCityDropdown(),
                   const SizedBox(height: 16.0),
-                  _buildTextField(_streetController, 'Calle', 'Por favor ingresa la calle'),
+                  _buildTextField(_streetController, 'Dirección', 'Por favor ingresa la Dirección'),
                   const SizedBox(height: 16.0),
-                  _buildTextField(_houseNumberController, 'Número', 'Por favor ingresa el número de la casa'),
+                  _buildTextField(_houseNumberController, 'N° casa', 'Por favor ingresa el número de la casa'),
                   const SizedBox(height: 16.0),
-                  _buildTextField(_postalCodeController, 'Código Postal', 'Por favor ingresa el código postal'),
+                  _buildTextField(_postalCodeController, 'Cód. Postal', 'Por favor ingresa el código postal'),
                   const SizedBox(height: 24.0),
                   ElevatedButton.icon(
                     onPressed: _createAddress,
