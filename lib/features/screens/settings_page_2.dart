@@ -89,15 +89,6 @@ Widget _buildGeneralSection(UserProvider userProvider) {
       // Dirección del usuario
       _CustomListTile(
         title: "Dirección",
-        icon: Icons.location_on_outlined, // Ícono de ubicación
-        onTap: () {
-          logger.i("Dirección seleccionada");
-        },
-      ),
-
-
-      _CustomListTile(
-        title: "Dirección",
         icon: Icons.location_on_outlined, // Ícono relacionado con gas
           onTap: () {
           final userId = userProvider.userId; // Obtén el ID del usuario
