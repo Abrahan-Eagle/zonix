@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/models/adresse.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_create_screen.dart'; // Asegúrate de que la ruta sea correcta
+import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_create_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -34,6 +34,9 @@ class AddressPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isSmallScreen = width < 600;
+
     return ChangeNotifierProvider(
       create: (_) => AddressModel()..loadAddress(userId),
       child: Consumer<AddressModel>(
@@ -42,106 +45,109 @@ class AddressPage extends StatelessWidget {
             return Scaffold(
               appBar: AppBar(title: const Text('Dirección')),
               body: const Center(child: CircularProgressIndicator()),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  // Redirigir a la pantalla de creación de dirección
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RegisterAddressScreen(userId: userId),
-                    ),
-                  );
-                },
-                child: const Icon(Icons.add),
-              ),
+              floatingActionButton: _buildFloatingActionButton(context),
             );
           }
 
           if (addressModel.address == null) {
             return Scaffold(
               appBar: AppBar(title: const Text('Dirección')),
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Redirigir a la pantalla de creación de dirección
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RegisterAddressScreen(userId: userId),
-                      ),
-                    );
-                  },
-                  child: const Text('Crear Dirección'),
+              body: const Center(
+                child: Text(
+                  'No hay información de dirección disponible.',
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  // Redirigir a la pantalla de creación de dirección
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RegisterAddressScreen(userId: userId),
-                    ),
-                  );
-                },
-                child: const Icon(Icons.add),
-              ),
+              floatingActionButton: _buildFloatingActionButton(context),
             );
           }
 
           return Scaffold(
-            appBar: AppBar(title: const Text('Detalle de Dirección')),
-            body: _buildAddressDetails(addressModel.address!, context),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                // Redirigir a la pantalla de creación de dirección
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RegisterAddressScreen(userId: userId),
-                  ),
-                );
-              },
-              child: const Icon(Icons.add),
-            ),
+            appBar: AppBar(title: const Text('Dirección')),
+            body: _buildAddressDetails(addressModel.address!, context, isSmallScreen),
+            floatingActionButton: _buildFloatingActionButton(context),
           );
         },
       ),
     );
   }
 
-  Widget _buildAddressDetails(Address address, BuildContext context) {
+  FloatingActionButton _buildFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RegisterAddressScreen(userId: userId),
+          ),
+        );
+      },
+      child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildAddressDetails(Address address, BuildContext context, bool isSmallScreen) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(isSmallScreen ? 8.0 : 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildField('Calle', address.street),
-          _buildField('Número', address.houseNumber),
-          _buildField('Código Postal', address.postalCode),
-          _buildField('Latitud', address.latitude.toString()),
-          _buildField('Longitud', address.longitude.toString()),
-          _buildField('Estado', address.status),
-          const SizedBox(height: 20),
+          Card(
+            child: Padding(
+              padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildField('Dirección', address.street, isTight: true, isSmallScreen: isSmallScreen),
+                  _buildField('N° casa', address.houseNumber, isSmallScreen: isSmallScreen),
+                  _buildField('Código Postal', address.postalCode, isSmallScreen: isSmallScreen),
+                  _buildField('Estado', _translateStatus(address.status), isSmallScreen: isSmallScreen),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 10 : 20),
           _buildMap(address.latitude, address.longitude, context),
         ],
       ),
     );
   }
 
-  Widget _buildField(String label, String value) {
+  String _translateStatus(String status) {
+    switch (status) {
+      case 'completeData':
+        return 'Datos completos';
+      case 'incompleteData':
+        return 'Datos incompletos';
+      case 'notverified':
+        return 'No verificado';
+      default:
+        return 'Estado desconocido';
+    }
+  }
+
+  Widget _buildField(String label, String value, {bool isTight = false, required bool isSmallScreen}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 4.0 : 6.0),
       child: Row(
         children: [
           Expanded(
+            flex: isTight ? 1 : 2,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isSmallScreen ? 14 : 16,
+              ),
             ),
           ),
           Expanded(
-            child: Text(value, textAlign: TextAlign.end),
+            flex: isTight ? 1 : 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+            ),
           ),
         ],
       ),
@@ -153,17 +159,14 @@ class AddressPage extends StatelessWidget {
       return const Center(child: Text('Coordenadas inválidas.'));
     }
 
+    final width = MediaQuery.of(context).size.width;
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(
-        Uri.parse(
-          'https://www.google.com/maps/@$latitude,$longitude,15z',
-        ),
-      );
+      ..loadRequest(Uri.parse('https://www.google.com/maps/@$latitude,$longitude,15z'));
 
     return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.5,
-      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height * 0.6,
+      width: width,
       child: WebViewWidget(controller: controller),
     );
   }
