@@ -104,26 +104,10 @@ Future<List<StateModel>> fetchStates(int countryId) async {
 }
 
 
-  // Future<List<City>> fetchCitiesByState(int stateId) async {
-  //   final token = await _getToken();
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse('$baseUrl/api/addresses/get-cities-by-state/$stateId'),
-  //       headers: {'Authorization': 'Bearer $token'},
-  //     ).timeout(const Duration(seconds: 10));
-
-  //     return _handleResponse<List<City>>(response, (data) {
-  //       return (data as List).map((json) => City.fromJson(json)).toList();
-  //     });
-  //   } catch (e) {
-  //     logger.e('Error en la solicitud de ciudades: $e');
-  //     throw ApiException('Error en la solicitud de ciudades: ${e.toString()}');
-  //   }
-  // }
 
   Future<void> createAddress(Address address, int userId) async {
 
-    logger.w('createAddresscreateAddresscreateAddresscreateAddresscreateAddress: ${address.latitude} ${address.longitude}');
+    logger.w('createAddress: ${address.latitude} ${address.longitude}');
     final token = await _getToken();
     try {
       final response = await http.post(
