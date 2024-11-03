@@ -31,18 +31,20 @@ class UserProvider with ChangeNotifier {
 
   // Verifica si el usuario está autenticado y carga los datos si es necesario
   Future<void> checkAuthentication() async {
-    try {
-      _isAuthenticated = await AuthUtils.isAuthenticated();
-      if (_isAuthenticated) {
-        await _loadUserData();
-        await getUserDetails();
-      }
-    } catch (e) {
-      debugPrint('Error al verificar autenticación: $e');
-    } finally {
-      notifyListeners();
+  try {
+    _isAuthenticated = await AuthUtils.isAuthenticated();
+    if (_isAuthenticated) {
+      await getUserDetails(); // Actualiza los datos desde la API
+      await _loadUserData(); // Carga cualquier dato adicional desde almacenamiento seguro
+      logger.i('Final userId: $_userId');
     }
+  } catch (e) {
+    debugPrint('Error al verificar autenticación: $e');
+  } finally {
+    notifyListeners();
   }
+}
+
 
   // Carga la información del usuario desde el almacenamiento seguro
   Future<void> _loadUserData() async {
@@ -78,7 +80,8 @@ class UserProvider with ChangeNotifier {
         final role = await _storage.read(key: 'role') ?? 'guest';
         logger.i('User details: $userDetails');
         logger.i('User role: $role');
-        return {'users': userDetails, 'role': role};
+        logger.i('User _userId_userId_userId_userId_userId_userId_userId_userIdxxx1122233: $_userId');
+        return {'users': userDetails, 'role': role, 'userId':_userId};
       } else {
         logger.e('Error: ${response.statusCode} - ${response.body}');
         throw Exception('Error al obtener detalles del usuario');

@@ -44,11 +44,14 @@ class ApiService {
         logger.i($varToken);
         var $varRole= responseData['user']['role'];
         logger.i($varRole);
+        var $completedOnboarding = responseData['user']['completed_onboarding']?.toString(); // Convertimos a String
+        logger.i($completedOnboarding);
 
         // Verificación más flexible para data
         if ($varToken != null) {
           await _storage.write(key: 'token', value: responseData['token']);  // Guardar el JWT en almacenamiento seguro
           await _storage.write(key: 'role', value: responseData['user']['role']);
+          await _storage.write(key: 'userCompletedOnboarding', value: $completedOnboarding); // Guardamos como String
 
           logger.i('Inicio de sesión exitoso');
 
@@ -67,6 +70,10 @@ class ApiService {
           } else {
             logger.e('No se encontró ningún role almacenado');
           }
+
+                    // Convertir a booleano al leer desde el almacenamiento
+          bool storedOnboarding = (await _storage.read(key: 'userCompletedOnboarding')) == '1';
+          logger.i('Estado de completedOnboarding almacenado: $storedOnboarding');
 
         } else {
           logger.e('Respuesta inesperada: ${response.body}');

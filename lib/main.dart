@@ -133,31 +133,6 @@ class MainRouterState extends State<MainRouter> {
 
   
 
-
-  // Future<Map<String, dynamic>> _getUserDetails() async {
-  //   final token = await _storage.read(key: 'token');
-  //   logger.i('Retrieved token: $token');
-  //   final response = await http.get(
-  //     Uri.parse('$baseUrl/api/auth/user'),
-  //     headers: {
-  //       'Authorization': 'Bearer $token',
-  //       'Content-Type': 'application/json',
-  //     },
-  //   );
-
-  //    if (response.statusCode == 200) {
-  //     final userDetails = jsonDecode(response.body);
-  //     final role = await _storage.read(key: 'role'); // Asegúrate de que el rol se esté almacenando correctamente
-  //     logger.i('User details: $userDetails');
-  //     logger.i('User role: $role');
-  //     return {'users': userDetails, 'role': role};
-  //   } else {
-  //     logger.e('Error: ${response.statusCode}');
-  //     throw Exception('Error al obtener detalles del usuario');
-  //   }
-  // }
-
-
   List<BottomNavigationBarItem> _getBottomNavItems(int level) {
     switch (level) {
       case 1:

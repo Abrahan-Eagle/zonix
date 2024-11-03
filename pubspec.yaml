@@ -39,6 +39,7 @@ dependencies:
   geolocator: ^13.0.1
   webview_flutter: ^4.10.0
   flutter_typeahead: ^5.2.0
+  smooth_page_indicator: ^1.2.0+3
  
  
   
@@ -101,6 +102,7 @@ flutter:
     - assets/images/undraw_date_picker_re_r0p8.svg
     - assets/images/undraw_mention_re_k5xc.svg
     - assets/images/undraw_insert_re_s97w.svg
+    - assets/welcome_image.svg
     - .env
 
 

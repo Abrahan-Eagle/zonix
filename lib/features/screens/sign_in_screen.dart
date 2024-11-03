@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+import 'package:zonix/features/screens/onboarding/pages_onboardingx/onboarding_screen.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -47,6 +48,7 @@ class SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _handleSignIn() async {
+  try {
     await GoogleSignInService.signInWithGoogle();
     _currentUser = await GoogleSignInService.getCurrentUser();
     setState(() {});
@@ -56,47 +58,44 @@ class SignInScreenState extends State<SignInScreen> {
       await AuthUtils.saveUserEmail(_currentUser!.email ?? 'Email no disponible');
       await AuthUtils.saveUserPhotoUrl(_currentUser!.photoUrl ?? 'URL de foto no disponible');
 
-      // Verificar que los datos se hayan guardado
+    
       String? savedName = await _storage.read(key: 'userName');
       String? savedEmail = await _storage.read(key: 'userEmail');
       String? savedPhotoUrl = await _storage.read(key: 'userPhotoUrl');
+      String? savedOnboardingString = await _storage.read(key: 'userCompletedOnboarding');
 
-      // Verifica en el log si los valores fueron correctamente almacenados
       logger.i('Nombre guardado: $savedName');
       logger.i('Correo guardado: $savedEmail');
       logger.i('Foto guardada: $savedPhotoUrl');
+      logger.i('Onboarding guardada: $savedOnboardingString');
 
-      logger.i('Inicio de sesión exitoso');
-      logger.i('Usuario: ${_currentUser!.displayName}, Correo: ${_currentUser!.email}');
+      // Conversión de savedOnboardingString a booleano
+      bool onboardingCompleted = savedOnboardingString == '1';
+      logger.i('Conversión de completedOnboarding: $onboardingCompleted');
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainRouter()),
-      );
+      // Navegación según el estado del onboarding
+      if (!onboardingCompleted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainRouter()),
+        );
+      }
     } else {
       logger.i('Inicio de sesión cancelado o fallido');
     }
+  } catch (e) {
+    logger.e('Error durante el manejo del inicio de sesión: $e');
+    // Manejo adicional de errores, como mostrar un mensaje al usuario
   }
+}
 
-  Future<void> _handleLogout() async {
-    await googleSignInService.signOut();
-    await AuthUtils.logout();
-    setState(() {
-      _currentUser = null; // Restablece el usuario actual a null
-    });
-
-    if (!mounted) return;
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const SignInScreen()),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sesión cerrada correctamente')),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,38 +133,12 @@ class SignInScreenState extends State<SignInScreen> {
         ),
       ),
       body: Center(
-        child: _currentUser == null ? _buildSignInButton() : _buildUserInfo(),
+        // child: _currentUser == null ? _buildSignInButton() : _buildUserInfo(),
+        child: _buildSignInButton(),
       ),
     );
   }
 
-  // Widget para mostrar información del usuario
-  Widget _buildUserInfo() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        CircleAvatar(
-          backgroundImage: NetworkImage(_currentUser!.photoUrl ?? ''),
-          radius: 50,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Nombre: ${_currentUser!.displayName}',
-          style: const TextStyle(fontSize: 18),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Correo: ${_currentUser!.email}',
-          style: const TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: _handleLogout,
-          child: const Text('Cerrar sesión'),
-        ),
-      ],
-    );
-  }
 
   Widget _buildSignInButton() {
     return Column(
