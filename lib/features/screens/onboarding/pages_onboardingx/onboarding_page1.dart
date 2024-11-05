@@ -13,7 +13,7 @@ class OnboardingPage1 extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.network('https://i.ibb.co/cJqsPSB/scooter.png'),
+              Image.asset('assets/onboarding/scooter.png'), // Cambiado a Image.asset
               const SizedBox(height: 24),
               Text(
                 'Bienvenido a Zonix',

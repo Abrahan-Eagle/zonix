@@ -102,7 +102,10 @@ flutter:
     - assets/images/undraw_date_picker_re_r0p8.svg
     - assets/images/undraw_mention_re_k5xc.svg
     - assets/images/undraw_insert_re_s97w.svg
-    - assets/welcome_image.svg
+    - assets/onboarding/welcome_image.svg
+    - assets/onboarding/scooter.png
+    - assets/onboarding/storefront-illustration-2.png
+    - assets/onboarding/building.png
     - .env
 
 

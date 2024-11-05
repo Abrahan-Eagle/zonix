@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/api/gas_cylinder_service.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
-
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:provider/provider.dart';
 class CreateGasCylinderScreen extends StatefulWidget {
   final int userId;
 
@@ -189,10 +190,18 @@ class CreateGasCylinderScreenState extends State<CreateGasCylinderScreen> {
                                   widget.userId,
                                   imageFile: _imageFile,
                                 );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Bombona creada con éxito')),
-                                );
-                                Navigator.pop(context);
+                            
+
+                                if (mounted) { // Verifica si el widget aún está montado
+                                    Provider.of<UserProvider>(context, listen: false).setGasCylindersCreated(true);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Bombona creada con éxito')),
+                                    );
+                                    Navigator.of(context).pop();
+                                  }
+
+
+
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text('Error: $e')),

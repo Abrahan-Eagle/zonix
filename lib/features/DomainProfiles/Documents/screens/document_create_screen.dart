@@ -7,8 +7,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart'; // Importar para usar FilteringTextInputFormatter
 import 'package:logger/logger.dart';
 import 'package:image/image.dart' as img; // Importar el paquete de imagen
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:provider/provider.dart';
 
 final logger = Logger();
+
 final documentService = DocumentService();
 class CreateDocumentScreen extends StatefulWidget {
   final int userId;
@@ -377,9 +380,16 @@ Future<void> _saveDocument() async {
           backImageFile: _getFileFromPath(document.backImage),
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Documento guardado exitosamente!')),
-        );
+
+        if (mounted) { // Verifica si el widget aún está montado
+          Provider.of<UserProvider>(context, listen: false).setDocumentCreated(true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Documento guardado exitosamente')),
+          );
+          Navigator.of(context).pop();
+        }
+
+
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('La imagen frontal supera los 2 MB.')),

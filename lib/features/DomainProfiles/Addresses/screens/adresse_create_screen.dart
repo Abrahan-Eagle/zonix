@@ -5,7 +5,11 @@ import '../api/adresse_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'location_module.dart'; // Importa el módulo de ubicación
 import 'package:geolocator/geolocator.dart'; // Importa la clase Position
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
+final logger = Logger();
 class RegisterAddressScreen extends StatefulWidget {
   final int userId;
 
@@ -36,6 +40,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
   @override
   void initState() {
     super.initState();
+    logger.i('Console log para verificar el userId al inicio...... Recibiendo userId: ${widget.userId}'); // Console log para verificar el userId al inicio
     loadCountries();
     _captureLocation(); // Captura la ubicación automáticamente al iniciar
   }
@@ -267,7 +272,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
       double lat = latitude ?? 0.0;
       double lon = longitude ?? 0.0;
       String status = "activo";
-
+      
+      
+      logger.i('Transformando userId (${widget.userId}) a profileId'); // Console log antes de usar profileId
       final address = Address(
         id: 0,
         profileId: widget.userId,
@@ -282,10 +289,16 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
 
       try {
         await _addressService.createAddress(address, widget.userId);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dirección registrada exitosamente')),
-        );
-        Navigator.of(context).pop();
+        
+        
+        if (mounted) { // Verifica si el widget aún está montado
+          Provider.of<UserProvider>(context, listen: false).setAdresseCreated(true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Dirección registrada exitosamente')),
+          );
+          Navigator.of(context).pop();
+        }
+
       } catch (e) {
         _showError('Error registrando la dirección: $e');
       }

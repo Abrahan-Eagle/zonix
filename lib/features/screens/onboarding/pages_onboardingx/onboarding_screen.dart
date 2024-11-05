@@ -6,10 +6,10 @@ import 'onboarding_page2.dart';
 import 'onboarding_page3.dart';
 import 'onboarding_page4.dart';
 import 'onboarding_page5.dart';
-import './profile_screen.dart';
-import './address_screen.dart';
-import './document_screen.dart';
-import './gas_cylinder_screen.dart';
+// import './profile_screen.dart';
+// import './address_screen.dart';
+// import './document_screen.dart';
+// import './gas_cylinder_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   
@@ -97,7 +97,7 @@ class WelcomePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SvgPicture.asset('assets/welcome_image.svg', height: 200), // Cargar SVG
+          SvgPicture.asset('assets/onboarding/welcome_image.svg', height: 200), // Cargar SVG
           const SizedBox(height: 20),
           const Text(
             '¡Bienvenido a Zonix!',

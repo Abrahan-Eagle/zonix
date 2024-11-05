@@ -107,7 +107,7 @@ Future<List<StateModel>> fetchStates(int countryId) async {
 
   Future<void> createAddress(Address address, int userId) async {
 
-    logger.w('createAddress: ${address.latitude} ${address.longitude}');
+    logger.w('addressUSERID: ${address.id}  userIduserIduserIdUSERID: $userId  createAddress: ${address.latitude} ${address.longitude}');
     final token = await _getToken();
     try {
       final response = await http.post(
