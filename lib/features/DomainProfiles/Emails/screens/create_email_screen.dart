@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/email.dart';
 import '../api/email_service.dart';
 import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class CreateEmailScreen extends StatefulWidget {
   final int userId;
@@ -115,6 +117,7 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
 
       try {
         await _emailService.createEmail(email, widget.userId);
+        context.read<UserProvider>().setEmailCreated(true);
         Navigator.pop(context, true); // Devolver true para indicar éxito
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -21,6 +21,9 @@ class UserProvider with ChangeNotifier {
   bool _adresseCreated = false;
   bool _documentCreated = false;
   bool _gasCylindersCreated = false;
+  bool _phoneCreated = false;
+  bool _emailCreated = false;
+
   String _userName = '';
   String _userEmail = '';
   String _userPhotoUrl = '';
@@ -32,6 +35,8 @@ class UserProvider with ChangeNotifier {
   bool get adresseCreated => _adresseCreated;
   bool get documentCreated => _documentCreated;
   bool get gasCylindersCreated => _gasCylindersCreated;
+  bool get phoneCreated => _phoneCreated;
+  bool get emailCreated => _emailCreated;
   String get userName => _userName;
   String get userEmail => _userEmail;
   String get userPhotoUrl => _userPhotoUrl;
@@ -64,6 +69,18 @@ class UserProvider with ChangeNotifier {
   }
 
 
+  void setPhoneCreated(bool value) {
+    _phoneCreated = value;
+    _storage.write(key: 'phoneCreated', value: value.toString()); // Guarda en almacenamiento seguro
+    notifyListeners();
+  }
+
+    void setEmailCreated(bool value) {
+    _emailCreated = value;
+    _storage.write(key: 'emailCreated', value: value.toString()); // Guarda en almacenamiento seguro
+    notifyListeners();
+  }
+
   // Verifica si el usuario está autenticado y carga los datos si es necesario
   Future<void> checkAuthentication() async {
     try {
@@ -91,6 +108,8 @@ class UserProvider with ChangeNotifier {
       _adresseCreated = (await _storage.read(key: 'adresseCreated')) == 'true'; // Carga el estado de creación de perfil
       _documentCreated = (await _storage.read(key: 'documentCreated')) == 'true'; // Carga el estado de creación de perfil
       _gasCylindersCreated = (await _storage.read(key: 'gasCylindersCreated')) == 'true'; // Carga el estado de creación de perfil
+      _phoneCreated = (await _storage.read(key: 'phoneCreated')) == 'true'; // Carga el estado de creación de perfil
+      _emailCreated = (await _storage.read(key: 'emailCreated')) == 'true'; // Carga el estado de creación de perfil
     } catch (e) {
       debugPrint('Error al cargar datos del usuario: $e');
     }
@@ -177,6 +196,8 @@ class UserProvider with ChangeNotifier {
     _adresseCreated = false;
     _documentCreated = false;
     _gasCylindersCreated = false;
+    _phoneCreated = false;
+    _emailCreated = false;
     _userName = '';
     _userEmail = '';
     _userPhotoUrl = '';
@@ -187,6 +208,8 @@ class UserProvider with ChangeNotifier {
     await _storage.delete(key: 'adresseCreated');
     await _storage.delete(key: 'documentCreated');
     await _storage.delete(key: 'gasCylindersCreated');
+    await _storage.delete(key: 'phoneCreated');
+    await _storage.delete(key: 'emailCreated');
     await _storage.delete(key: 'token');
   }
 }

@@ -40,6 +40,8 @@ dependencies:
   webview_flutter: ^4.10.0
   flutter_typeahead: ^5.2.0
   smooth_page_indicator: ^1.2.0+3
+  about: ^2.2.0
+  package_info_plus: ^8.1.0
  
  
   
@@ -106,6 +108,8 @@ flutter:
     - assets/onboarding/scooter.png
     - assets/onboarding/storefront-illustration-2.png
     - assets/onboarding/building.png
+    - assets/onboarding/undraw_add_information_j2wg.svg
+    - assets/onboarding/undraw_outer_space_re_u9vd.svg
     - .env
 
 

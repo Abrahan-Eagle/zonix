@@ -9,6 +9,8 @@ import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_l
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
+import 'package:zonix/features/screens/about/about_page.dart';
+import 'package:zonix/features/screens/HelpAndFAQPage/help_and_faq_page.dart';
 
 // Configuración del logger
 final logger = Logger();
@@ -169,24 +171,38 @@ Widget _buildHelpAndLogoutSection(UserProvider userProvider) {
         },
       ),
       // Estado de seguridad del usuario
-      _CustomListTile(
-        title: "Estado de Seguridad",
-        icon: Icons.shield_outlined, // Ícono de seguridad
-        onTap: () {
-          logger.i("Estado de Seguridad seleccionado");
-          // Agrega la lógica para estado de seguridad si es necesario
+   
+     
+      // Información acerca de la aplicación
+     _CustomListTile(
+        title: "Ayuda y Comentarios",
+        icon: Icons.help_outline_rounded, // Ícono relacionado con gas
+          onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HelpAndFAQPage(),
+            ),
+          );
         },
       ),
-      // Ayuda y comentarios del usuario
-      const _CustomListTile(
-        title: "Ayuda y Comentarios",
-        icon: Icons.help_outline_rounded, // Ícono de ayuda
-      ),
-      // Información acerca de la aplicación
-      const _CustomListTile(
+
+   // Información acerca de la aplicación
+     _CustomListTile(
         title: "Acerca de",
-        icon: Icons.info_outline_rounded, // Ícono de información
+        icon: Icons.info_outline_rounded, // Ícono relacionado con gas
+          onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MyApp(),
+            ),
+          );
+        },
       ),
+
+
+
       // Cierre de sesión del usuario
       _CustomListTile(
         title: "Cerrar sesión",
