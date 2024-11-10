@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
 import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';  // Asegúrate de importar el paquete correcto
 
 class TicketDetailsDrawer extends StatefulWidget {
   final AnimationController controller;
@@ -46,13 +47,18 @@ class _TicketDetailsDrawerState extends State<TicketDetailsDrawer> {
       child: Stack(
         children: [
           _buildFlutterLogo(ticket.status),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context, ticket),
-              const SizedBox(height: 16),
-              ..._buildTicketDetailsItems(ticket),
-            ],
+          SingleChildScrollView(  // Permite desplazarse si el contenido es largo
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, ticket),
+                const SizedBox(height: 16),
+                // Código QR colocado encima de los detalles
+                _buildQRCode(ticket),
+                const SizedBox(height: 16),
+                ..._buildTicketDetailsItems(ticket),
+              ],
+            ),
           ),
         ],
       ),
@@ -92,32 +98,73 @@ class _TicketDetailsDrawerState extends State<TicketDetailsDrawer> {
     );
   }
 
-  List<Widget> _buildTicketDetailsItems(GasTicket ticket) {
-    final ticketDetails = [
-      'Ticket #: ${ticket.queuePosition}',
-      'Cita: ${ticket.appointmentDate}',
-      'Posición de tiempo: ${ticket.timePosition}',
-    ];
+  // Colocamos el QR aquí fuera de _buildDetailSection
+Widget _buildQRCode(GasTicket ticket) {
+  // Obtener el color adecuado según el modo de tema (oscuro o claro)
+  Color qrForegroundColor = Theme.of(context).brightness == Brightness.dark
+      ? Colors.white  // Color blanco si el tema es oscuro
+      : Colors.black;  // Color negro si el tema es claro
 
-    return ticketDetails.map((detail) {
-      return AnimatedBuilder(
-        animation: widget.staggeredController,
-        builder: (context, child) {
-          final opacity = (widget.staggeredController.value - 0.1).clamp(0.0, 1.0);
-          return Opacity(
-            opacity: opacity,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Text(
-                detail,
-                style: const TextStyle(fontSize: 20),
-              ),
-            ),
-          );
-        },
-      );
-    }).toList();
+  return Center(
+    child: QrImageView(
+      data: ticket.id.toString(), // El ID del ticket para el QR
+      version: QrVersions.auto,  // Establece la versión automáticamente
+      size: 300.0,  // Ajusta el tamaño del QR según lo que necesites
+      foregroundColor: qrForegroundColor,  // Establece el color del QR según el modo de tema
+      backgroundColor: Colors.transparent,  // Fondo transparente para el QR
+    ),
+  );
+}
+
+
+  List<Widget> _buildTicketDetailsItems(GasTicket ticket) {
+    return [
+      _buildDetailSection('Información del Ticket', [
+        'Ticket #: ${ticket.queuePosition}',
+        'Cita: ${ticket.appointmentDate}',
+        'Posición de tiempo: ${ticket.timePosition}',
+        'Fecha reservada: ${ticket.reservedDate}',
+        'Fecha de vencimiento: ${ticket.expiryDate}',
+        'Estado: ${ticket.status}',
+      ]),
+      _buildDetailSection('Detalles del Perfil', [
+        'Nombre: ${ticket.firstName} ${ticket.lastName}',
+        'Teléfono: ${ticket.phoneNumbers}', // Asumiendo que hay al menos un teléfono
+        'Dirección: ${ticket.addresses}', // Se asume que hay al menos una dirección
+      ]),
+
+      _buildDetailSection('Información de la Bombona de Gas', [
+        'Código de la bombona: ${ticket.gasCylinderCode}',
+        'Tipo de bombona: ${ticket.cylinderType}',
+        'Peso de la bombona: ${ticket.cylinderWeight}',
+        'Foto de la bombona: ${ticket.gasCylinderPhoto}',
+      ]),
+    ];
   }
+
+Widget _buildDetailSection(String title, List<String> details) {
+  return ExpansionTile(
+    title: Align(
+      alignment: Alignment.centerLeft, // Alinea el título hacia la izquierda
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      ),
+    ),
+    children: details.map((detail) {
+      return Align(
+        alignment: Alignment.centerLeft, // Alinea cada detalle hacia la izquierda
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            detail,
+            style: const TextStyle(fontSize: 18),
+          ),
+        ),
+      );
+    }).toList(),
+  );
+}
 
   Widget _buildFlutterLogo(String status) {
     return Positioned(

@@ -42,6 +42,7 @@ dependencies:
   smooth_page_indicator: ^1.2.0+3
   about: ^2.2.0
   package_info_plus: ^8.1.0
+  qr_flutter: ^4.1.0
  
  
   
