@@ -30,7 +30,6 @@ class MyApp extends StatelessWidget {
           title: const Text(
             'Acerca de Zonix',
             style: TextStyle(
-              // Aquí puedes ajustar el estilo del título
               fontSize: 24, // Ajusta el tamaño del texto si es necesario
               fontWeight: FontWeight.bold,
             ),
@@ -41,14 +40,20 @@ class MyApp extends StatelessWidget {
             textAlign: TextAlign.justify,
           ),
           applicationIcon: Container(
-            margin: const EdgeInsets.only(bottom: -20), // Ajustar el margen inferior para reducir el espacio
-            padding: const EdgeInsets.symmetric(vertical: -60), // Mantener un poco de padding vertical
-            child: Image.asset(
-              Theme.of(context).brightness == Brightness.dark
-                  ? 'assets/images/splash_logo_dark.png'
-                  : 'assets/images/splash_logo.png',
-              width: 300,  // Ajusta el tamaño de la imagen según necesites
-              height: 300,
+            margin: const EdgeInsets.only(bottom: 0), // Ajuste de margen sin valores negativos
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Ajusta el tamaño de la imagen de acuerdo al ancho de la pantalla
+                double imageSize = constraints.maxWidth * 0.3; // 60% del ancho de la pantalla
+
+                return Image.asset(
+                  Theme.of(context).brightness == Brightness.dark
+                      ? 'assets/images/2.png'
+                      : 'assets/images/1.png',
+                  width: imageSize,
+                  height: imageSize,
+                );
+              },
             ),
           ),
           applicationLegalese: '© ${DateTime.now().year} ${Pubspec.authorsName.join(', ')}. Todos los derechos reservados.',

@@ -110,6 +110,8 @@ flutter:
     - assets/onboarding/building.png
     - assets/onboarding/undraw_add_information_j2wg.svg
     - assets/onboarding/undraw_outer_space_re_u9vd.svg
+    - assets/images/1.png
+    - assets/images/2.png 
     - .env
 
 
