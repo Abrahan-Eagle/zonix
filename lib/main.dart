@@ -22,12 +22,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
 
-
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
-
-
+final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+    ? dotenv.env['API_URL_PROD']!
+    : dotenv.env['API_URL_LOCAL']!;
 
 // Configuración del logger
 final logger = Logger();
@@ -51,9 +48,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-
-
- await dotenv.load();
+  await dotenv.load();
   //  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
@@ -105,6 +100,10 @@ class MainRouter extends StatefulWidget {
   MainRouterState createState() => MainRouterState();
 }
 
+class GlobalVariables {
+  static String role = 'guest';
+}
+
 class MainRouterState extends State<MainRouter> {
   int _selectedLevel = 0;
   int _bottomNavIndex = 0;
@@ -120,7 +119,8 @@ class MainRouterState extends State<MainRouter> {
     setState(() {
       _selectedLevel = prefs.getInt('selectedLevel') ?? 0;
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
-      logger.i('Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
+      logger.i(
+          'Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
     });
   }
 
@@ -128,53 +128,97 @@ class MainRouterState extends State<MainRouter> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedLevel', _selectedLevel);
     await prefs.setInt('bottomNavIndex', _bottomNavIndex);
-    logger.i('Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
+    logger.i(
+        'Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
   }
 
-  
+  List<BottomNavigationBarItem> _getBottomNavItems(int level, String role) {
+    List<BottomNavigationBarItem> items;
 
-  List<BottomNavigationBarItem> _getBottomNavItems(int level) {
+    // Configura la lista base de elementos según el nivel
     switch (level) {
+      case 0:
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Inicio0'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayuda0'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración0'),
+        ];
+        break;
       case 1:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda1'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Inicio1'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayuda1'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración1'),
         ];
+        break;
       case 2:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda2'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Inicio2'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayuda2'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración2'),
         ];
+        break;
       case 3:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda3'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Inicio3'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayuda3'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración3'),
         ];
+        break;
 
       case 4:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda4'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Inicio4'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayuda4'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración4'),
         ];
-
+        break;
       case 5:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda5'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Inicio5'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayuda5'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuración5'),
         ];
+        break;
 
-       default:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda0'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+      default:
+        items = [
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: 'Iniciox'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.help), label: 'Ayudax'),
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuraciónx'),
         ];
     }
+
+    // Añadir elementos específicos para roles
+    if (role == 'sales_admin' && level == 0) {
+      items.insert(
+          2,
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.wifi_channel_sharp), label: 'AXxxx'));
+    }
+
+    return items;
   }
 
   void _onLevelSelected(int level) {
@@ -185,34 +229,14 @@ class MainRouterState extends State<MainRouter> {
     });
   }
 
-  void _onBottomNavTapped(int index) {
-    logger.i('Bottom navigation tapped: $index');
-    if (index == 2) {
-      // Navega a la pantalla de configuración
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SettingsPage2(),
-        ),
-      );
-    } else {
-      setState(() {
-        _bottomNavIndex = index;
-        logger.i('Bottom nav index changed to: $_bottomNavIndex');
-        _saveLastPosition();
-      });
-    }
-  }
-
-
   Widget _createLevelButton(int level, IconData icon, String tooltip) {
     return FloatingActionButton.small(
       heroTag: 'level$level',
       backgroundColor: _selectedLevel == level
-           ? Colors.blueAccent[700]
-           : Colors.blueAccent[50],
+          ? Colors.blueAccent[700]
+          : Colors.blueAccent[50],
       child: Icon(icon,
-            color: _selectedLevel == level ? Colors.white : Colors.black),
+          color: _selectedLevel == level ? Colors.white : Colors.black),
       onPressed: () => _onLevelSelected(level),
     );
   }
@@ -221,9 +245,8 @@ class MainRouterState extends State<MainRouter> {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-
     return Scaffold(
-    appBar: AppBar(
+      appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 4.0,
         title: RichText(
@@ -257,118 +280,101 @@ class MainRouterState extends State<MainRouter> {
           ),
         ),
         centerTitle: false,
-       
-       
-       
-       
-       actions: [
-  Consumer<UserProvider>(
-    builder: (context, userProvider, child) {
-      return GestureDetector(
-        onTap: () {
-          showMenu(
-            context: context,
-            position: const RelativeRect.fromLTRB(200, 80, 0, 0),
-            items: [
-              PopupMenuItem(
-                child: const Text('Perfil'),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfilePage1()),
-                ),
-              ),
-              PopupMenuItem(
-                child: const Text('Configuración'),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsPage2()),
-                ),
-              ),
-              PopupMenuItem(
-                child: const Text('Cerrar sesión'),
-                onTap: () async {
-                  await _storage.deleteAll();
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SignInScreen()));
+        actions: [
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              return GestureDetector(
+                onTap: () {
+                  showMenu(
+                    context: context,
+                    position: const RelativeRect.fromLTRB(200, 80, 0, 0),
+                    items: [
+                      PopupMenuItem(
+                        child: const Text('Perfil'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ProfilePage1()),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        child: const Text('Configuración'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SettingsPage2()),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        child: const Text('Cerrar sesión'),
+                        onTap: () async {
+                          await _storage.deleteAll();
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignInScreen()));
+                        },
+                      ),
+                    ],
+                  );
                 },
-              ),
-            ],
-          );
-        },
-        child: FutureBuilder<String?>(
-          future: _storage.read(key: 'userPhotoUrl'), // Leer la URL de la foto
-          builder:
-              (BuildContext context, AsyncSnapshot<String?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircleAvatar(
-                radius: 20,
-              );
-            } else if (snapshot.hasError ||
-                snapshot.data == null ||
-                snapshot.data!.isEmpty) {
-              return const CircleAvatar(
-                radius: 20,
-                child: Icon(Icons.person), // Icono de usuario predeterminado
-              );
-            } else {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: CircleAvatar(
-                  radius: 20,
-                  child: ClipOval(
-                    child: Image.network(
-                      snapshot.data!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                child: FutureBuilder<String?>(
+                  future: _storage.read(
+                      key: 'userPhotoUrl'), // Leer la URL de la foto
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String?> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        radius: 20,
+                      );
+                    } else if (snapshot.hasError ||
+                        snapshot.data == null ||
+                        snapshot.data!.isEmpty) {
+                      return const CircleAvatar(
+                        radius: 20,
+                        child: Icon(
+                            Icons.person), // Icono de usuario predeterminado
+                      );
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: CircleAvatar(
+                          radius: 20,
+                          child: ClipOval(
+                            child: Image.network(
+                              snapshot.data!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               );
-            }
-          },
-        ),
-      );
-    },
-  ),
-],
-
-
-
+            },
+          ),
+        ],
       ),
-     
-        body: FutureBuilder<Map<String, dynamic>>(
-      future: userProvider.getUserDetails(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          logger.e('Error fetching user details: ${snapshot.error}');
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final role = snapshot.data!['role'] ?? 'guest'; // Usa un valor predeterminado
-          logger.i('Role fetched: $role');
-
-          // Verificar el nivel y el botón de inicio
-          if (_selectedLevel == 0 && _bottomNavIndex == 0) {
-            return const GasTicketListScreen(); // Reemplaza por tu pantalla
-          } 
-           if (_selectedLevel == 0 && _bottomNavIndex == 1) {
-            return const OtherScreen(); // Reemplaza por tu pantalla
-          } 
-          
-          
-          
-          else {
-            return Center(
-              child: Text('Rol: $role', style: const TextStyle(fontSize: 24)),
-            );
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: userProvider.getUserDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            logger.e('Error fetching user details: ${snapshot.error}');
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            final role = snapshot.data!['role'] ??
+                'guest'; // Usa un valor predeterminado
+            GlobalVariables.role =
+                role; // Almacena el role en la variable global
+            logger.i('Role fetched: $role');
+            return _getBodyBasedOnRoleAndNav(
+                role, _selectedLevel, _bottomNavIndex);
           }
-        }
-      },
-    ),
+        },
+      ),
       floatingActionButtonLocation: ExpandableFab.location,
       floatingActionButton: ExpandableFab(
         distance: 70,
@@ -383,12 +389,58 @@ class MainRouterState extends State<MainRouter> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: _getBottomNavItems(_selectedLevel),
         currentIndex: _bottomNavIndex,
         selectedItemColor: Colors.blueAccent, // Color del ícono activo
         unselectedItemColor: Colors.grey, // Color del ícono inactivo
-        onTap: _onBottomNavTapped,
+        onTap: (index) {
+          setState(() {
+            _bottomNavIndex = index;
+          });
+        },
+        items: _getBottomNavItems(_selectedLevel, GlobalVariables.role),
       ),
     );
+  }
+
+  Widget _getBodyBasedOnRoleAndNav(
+      String role, int selectedLevel, int bottomNavIndex) {
+    if (selectedLevel == 0) {
+      if (bottomNavIndex == 0) return const GasTicketListScreen();
+      if (bottomNavIndex == 1) return const OtherScreen();
+      if (bottomNavIndex == 3) return const SettingsPage2();
+      if (bottomNavIndex == 2 && role == 'sales_admin') return const OtherScreen();
+    }
+
+    if (selectedLevel == 1) {
+      if (bottomNavIndex == 0) return const GasTicketListScreen();
+      if (bottomNavIndex == 1) return const OtherScreen();
+      if (bottomNavIndex == 3) return const SettingsPage2();
+    }
+
+    if (selectedLevel == 2) {
+      if (bottomNavIndex == 0) return const GasTicketListScreen();
+      if (bottomNavIndex == 1) return const OtherScreen();
+      if (bottomNavIndex == 3) return const SettingsPage2();
+    }
+
+    if (selectedLevel == 3) {
+      if (bottomNavIndex == 0) return const GasTicketListScreen();
+      if (bottomNavIndex == 1) return const OtherScreen();
+      if (bottomNavIndex == 3) return const SettingsPage2();
+    }
+
+    if (selectedLevel == 4) {
+      if (bottomNavIndex == 0) return const GasTicketListScreen();
+      if (bottomNavIndex == 1) return const OtherScreen();
+      if (bottomNavIndex == 3) return const SettingsPage2();
+    }
+
+    if (selectedLevel == 5) {
+      if (bottomNavIndex == 0) return const GasTicketListScreen();
+      if (bottomNavIndex == 1) return const OtherScreen();
+      if (bottomNavIndex == 3) return const SettingsPage2();
+    }
+    return Center(
+        child: Text('Rol: $role', style: const TextStyle(fontSize: 24)));
   }
 }
