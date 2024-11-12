@@ -18,6 +18,7 @@ import 'package:zonix/features/GasTicket/gas_button/screens/gas_ticket_list_scre
 // import 'dart:io';
 // import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:zonix/features/GasTicket/sales_admin_button/screens/ticket_scanner_screen.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -215,7 +216,7 @@ class MainRouterState extends State<MainRouter> {
       items.insert(
           2,
           const BottomNavigationBarItem(
-              icon: Icon(Icons.wifi_channel_sharp), label: 'AXxxx'));
+              icon: Icon(Icons.qr_code), label: 'Verificar'));
     }
 
     return items;
@@ -408,7 +409,7 @@ class MainRouterState extends State<MainRouter> {
       if (bottomNavIndex == 0) return const GasTicketListScreen();
       if (bottomNavIndex == 1) return const OtherScreen();
       if (bottomNavIndex == 3) return const SettingsPage2();
-      if (bottomNavIndex == 2 && role == 'sales_admin') return const OtherScreen();
+      if (bottomNavIndex == 2 && role == 'sales_admin') return const TicketScannerScreen();
     }
 
     if (selectedLevel == 1) {
