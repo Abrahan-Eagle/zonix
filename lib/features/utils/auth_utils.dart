@@ -81,6 +81,10 @@ class AuthUtils {
     await _storage.write(key: 'userName', value: userName);
   }
 
+  static Future<void> saveUserRole(String userRole) async {
+    await _storage.write(key: 'role', value: userRole);
+  }
+
   static Future<String?> getUserName() async {
     return await _storage.read(key: 'userName');
   }
@@ -101,5 +105,9 @@ class AuthUtils {
 
   static Future<String?> getUserPhotoUrl() async {
     return await _storage.read(key: 'userPhotoUrl');
+  }
+
+  static Future<String?> getUserRole() async {
+    return await _storage.read(key: 'role');
   }
 }

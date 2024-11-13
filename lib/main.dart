@@ -21,12 +21,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:zonix/features/GasTicket/sales_admin_button/screens/ticket_scanner_screen.dart';
 import 'package:zonix/features/GasTicket/dispatch_ticket_button/screens/dispatch_ticket_scanner_screen.dart';
 
+
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
 
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-    ? dotenv.env['API_URL_PROD']!
-    : dotenv.env['API_URL_LOCAL']!;
+
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
+
+
 
 // Configuración del logger
 final logger = Logger();
@@ -50,7 +54,9 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  await dotenv.load();
+
+
+ await dotenv.load();
   //  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
@@ -67,6 +73,7 @@ void initialization() async {
   await Future.delayed(const Duration(seconds: 3));
   FlutterNativeSplash.remove();
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -102,10 +109,6 @@ class MainRouter extends StatefulWidget {
   MainRouterState createState() => MainRouterState();
 }
 
-class GlobalVariables {
-  static String role = 'guest';
-}
-
 class MainRouterState extends State<MainRouter> {
   int _selectedLevel = 0;
   int _bottomNavIndex = 0;
@@ -121,8 +124,7 @@ class MainRouterState extends State<MainRouter> {
     setState(() {
       _selectedLevel = prefs.getInt('selectedLevel') ?? 0;
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
-      logger.i(
-          'Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
+      logger.i('Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
     });
   }
 
@@ -130,100 +132,236 @@ class MainRouterState extends State<MainRouter> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('selectedLevel', _selectedLevel);
     await prefs.setInt('bottomNavIndex', _bottomNavIndex);
-    logger.i(
-        'Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
+    logger.i('Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex');
   }
 
-  List<BottomNavigationBarItem> _getBottomNavItems(int level, String role) {
-    List<BottomNavigationBarItem> items;
+  // List<BottomNavigationBarItem> _getBottomNavItems(int level, String role) {
+  //   List<BottomNavigationBarItem> items = [];
+  //   switch (level) {
+  //     case 1:
+  //       items = [
+  //         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+  //         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda1'),
+  //       ];
+  //       break;
+  //     case 2:
+  //       items = [
+  //         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+  //         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda2'),
+  //       ];
+  //       break;
+  //     case 3:
+  //       items = [
+  //         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+  //         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda3'),
+  //       ];
+  //       break;
+  //     case 4:
+  //       items = [
+  //         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+  //         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda4'),
+  //       ];
+  //       break;
+  //     case 5:
+  //       items = [
+  //         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+  //         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda5'),
+  //       ];
+  //       break;
+  //     default:
+  //       items = [
+  //         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+  //         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda0'),
+  //       ];
+  //   }
+  //   items.add(const BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'));
 
-    // Configura la lista base de elementos según el nivel
-    switch (level) {
-      case 0:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Inicio0'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayuda0'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración0'),
-        ];
-        break;
-      case 1:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Inicio1'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayuda1'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración1'),
-        ];
-        break;
-      case 2:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Inicio2'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayuda2'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración2'),
-        ];
-        break;
-      case 3:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Inicio3'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayuda3'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración3'),
-        ];
-        break;
+  //   if (level == 0) {
+  //     if (role == 'sales_admin') {
+  //       items.insert(
+  //           2, const BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: 'Verificar'));
+  //     }
+  //     if (role == 'dispatcher') {
+  //       items.insert(
+  //           2, const BottomNavigationBarItem(icon: Icon(Icons.workspace_premium), label: 'Despachar'));
+  //     }
+  //   }
 
-      case 4:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Inicio4'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayuda4'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración4'),
-        ];
-        break;
-      case 5:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Inicio5'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayuda5'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuración5'),
-        ];
-        break;
+  //   return items;
+  // }
+//   List<BottomNavigationBarItem> _getBottomNavItems(int level, String role) {
+//   List<BottomNavigationBarItem> items = [];
+  
+//   // Contador de BottomNavigationBarItem
+//   int itemCount = 0;
 
-      default:
-        items = [
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Iniciox'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.help), label: 'Ayudax'),
-          const BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuraciónx'),
-        ];
-    }
+//   switch (level) {
+//     case 1:
+//       items = [
+//         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+//         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda1'),
+//       ];
+//       break;
+//     case 2:
+//       items = [
+//         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+//         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda2'),
+//       ];
+//       break;
+//     case 3:
+//       items = [
+//         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+//         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda3'),
+//       ];
+//       break;
+//     case 4:
+//       items = [
+//         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+//         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda4'),
+//       ];
+//       break;
+//     case 5:
+//       items = [
+//         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+//         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda5'),
+//       ];
+//       break;
+//     default:
+//       items = [
+//         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+//         const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda0'),
+//       ];
+//   }
 
-    // Añadir elementos específicos para roles
-    if (role == 'sales_admin' && level == 0) { 
-      items.insert( 2, const BottomNavigationBarItem( icon: Icon(Icons.qr_code), label: 'Verificar'));
-    }
+//   // Agregar el item de configuración siempre
+//   items.add(const BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'));
 
-    if (role == 'dispatcher' && level == 0) { 
-      items.insert( 2, const BottomNavigationBarItem( icon: Icon(Icons.workspace_premium), label: 'Despachar'));
-    }
+//   // Agregar elementos específicos según el rol si el nivel es 0
+//   if (level == 0) {
+//     if (role == 'sales_admin') {
+//       items.insert(2, const BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: 'Verificar'));
+//     }
+//     if (role == 'dispatcher') {
+//       items.insert(2, const BottomNavigationBarItem(icon: Icon(Icons.workspace_premium), label: 'Despachar'));
+//     }
+//   }
+
+//   // Contar el número de items dentro de la lista
+//   itemCount = items.length;
+
+//   // Devolver los items y el contador
+//   logger.i('Nivel $level tiene $itemCount items en el BottomNavigationBar77777777777777777777777777777777777777777777');
+  
+//   return items;
+// }
 
 
-    return items;
+ 
+
+// void _onBottomNavTapped(int index, int itemCount) {
+//   logger.i('Bottom navigation tapped: $index, Total items: $itemCount');
+
+//   // Verifica si el índice seleccionado es el último item
+//   if (index == itemCount - 1) {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//         builder: (context) => const SettingsPage2(),
+//       ),
+//     );
+//   } else {
+//     setState(() {
+//       _bottomNavIndex = index;  // Actualiza el índice seleccionado
+//       logger.i('Bottom nav index changed to: $_bottomNavIndex');
+//       _saveLastPosition();
+//     });
+//   }
+// }
+
+
+// Función para obtener los items del BottomNavigationBar
+List<BottomNavigationBarItem> _getBottomNavItems(int level, String role) {
+  List<BottomNavigationBarItem> items = [];
+
+  switch (level) {
+    case 1:
+      items = [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda1'),
+      ];
+      break;
+    case 2:
+      items = [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda2'),
+      ];
+      break;
+    case 3:
+      items = [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda3'),
+      ];
+      break;
+    case 4:
+      items = [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda4'),
+      ];
+      break;
+    case 5:
+      items = [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda5'),
+      ];
+      break;
+    default:
+      items = [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+        const BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Ayuda0'),
+      ];
   }
+
+  // Agregar el item de configuración siempre
+  items.add(const BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'));
+
+  // Agregar elementos específicos según el rol si el nivel es 0
+  if (level == 0) {
+    if (role == 'sales_admin') {
+      items.insert(2, const BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: 'Verificar'));
+    }
+    if (role == 'dispatcher') {
+      items.insert(2, const BottomNavigationBarItem(icon: Icon(Icons.workspace_premium), label: 'Despachar'));
+    }
+  }
+
+  // Devolver los items y el contador
+  return items;
+}
+
+// Función para manejar el tap en el BottomNavigationBar
+void _onBottomNavTapped(int index, int itemCount) {
+  logger.i('Bottom navigation tapped: $index, Total items: $itemCount');
+
+  // Verifica si el índice seleccionado es el último item
+  if (index == itemCount - 1) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SettingsPage2(),
+      ),
+    );
+  } else {
+    setState(() {
+      _bottomNavIndex = index;  // Actualiza el índice seleccionado
+      logger.i('Bottom nav index changed to: $_bottomNavIndex');
+      _saveLastPosition();
+    });
+  }
+}
+
+// Dentro de tu widget donde tienes el BottomNavigationBar
+
+
 
   void _onLevelSelected(int level) {
     setState(() {
@@ -233,14 +371,33 @@ class MainRouterState extends State<MainRouter> {
     });
   }
 
+
+
+  // void _onBottomNavTapped(int index) {
+  //   logger.i('Bottom navigation tapped: $index');
+  //   if (index == 3) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) => const SettingsPage2(),
+  //       ),
+  //     );
+  //   } else {
+  //     setState(() {
+  //       _bottomNavIndex = index;
+  //       logger.i('Bottom nav index changed to: $_bottomNavIndex');
+  //       _saveLastPosition();
+  //     });
+  //   }
+  // }
+
   Widget _createLevelButton(int level, IconData icon, String tooltip) {
     return FloatingActionButton.small(
       heroTag: 'level$level',
       backgroundColor: _selectedLevel == level
           ? Colors.blueAccent[700]
           : Colors.blueAccent[50],
-      child: Icon(icon,
-          color: _selectedLevel == level ? Colors.white : Colors.black),
+      child: Icon(icon, color: _selectedLevel == level ? Colors.white : Colors.black),
       onPressed: () => _onLevelSelected(level),
     );
   }
@@ -323,10 +480,8 @@ class MainRouterState extends State<MainRouter> {
                   );
                 },
                 child: FutureBuilder<String?>(
-                  future: _storage.read(
-                      key: 'userPhotoUrl'), // Leer la URL de la foto
-                  builder:
-                      (BuildContext context, AsyncSnapshot<String?> snapshot) {
+                  future: _storage.read(key: 'userPhotoUrl'),
+                  builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircleAvatar(
                         radius: 20,
@@ -336,8 +491,7 @@ class MainRouterState extends State<MainRouter> {
                         snapshot.data!.isEmpty) {
                       return const CircleAvatar(
                         radius: 20,
-                        child: Icon(
-                            Icons.person), // Icono de usuario predeterminado
+                        child: Icon(Icons.person),
                       );
                     } else {
                       return Padding(
@@ -360,23 +514,59 @@ class MainRouterState extends State<MainRouter> {
           ),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: userProvider.getUserDetails(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            logger.e('Error fetching user details: ${snapshot.error}');
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            final role = snapshot.data!['role'] ??
-                'guest'; // Usa un valor predeterminado
-            GlobalVariables.role =
-                role; // Almacena el role en la variable global
-            logger.i('Role fetched: $role');
-            return _getBodyBasedOnRoleAndNav(
-                role, _selectedLevel, _bottomNavIndex);
-          }
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          return FutureBuilder<Map<String, dynamic>>(
+            future: userProvider.getUserDetails(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                logger.e('Error fetching user details: ${snapshot.error}');
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }// Dentro del FutureBuilder
+else {
+  final role = userProvider.userRole;
+  logger.i('Role fetched: $role');
+
+  if (_selectedLevel == 0) {
+    if (_bottomNavIndex == 0) return const GasTicketListScreen();
+    if (_bottomNavIndex == 1) return const OtherScreen();
+    if (_bottomNavIndex == 2 && role == 'sales_admin') return const TicketScannerScreen();
+    if (_bottomNavIndex == 2 && role == 'dispatcher') return const DispatcherScreen();
+  }
+
+  if (_selectedLevel == 1) {
+    if (_bottomNavIndex == 0) return const GasTicketListScreen();
+    if (_bottomNavIndex == 1) return const OtherScreen();
+  }
+
+  if (_selectedLevel == 2) {
+    if (_bottomNavIndex == 0) return const GasTicketListScreen();
+    if (_bottomNavIndex == 1) return const OtherScreen();
+  }
+
+  if (_selectedLevel == 3) {
+    if (_bottomNavIndex == 0) return const GasTicketListScreen();
+    if (_bottomNavIndex == 1) return const OtherScreen();
+  }
+
+  if (_selectedLevel == 4) {
+    if (_bottomNavIndex == 0) return const GasTicketListScreen();
+    if (_bottomNavIndex == 1) return const OtherScreen();
+  }
+
+  if (_selectedLevel == 5) {
+    if (_bottomNavIndex == 0) return const GasTicketListScreen();
+    if (_bottomNavIndex == 1) return const OtherScreen();
+  }
+
+  // Si no se cumplen ninguna de las condiciones anteriores, puedes manejar un caso por defecto.
+  return const Center(child: Text('Rol no reconocido o página no encontrada'));
+
+              }
+            },
+          );
         },
       ),
       floatingActionButtonLocation: ExpandableFab.location,
@@ -392,60 +582,35 @@ class MainRouterState extends State<MainRouter> {
           _createLevelButton(5, Icons.local_taxi, 'Taxis'),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _bottomNavIndex,
-        selectedItemColor: Colors.blueAccent, // Color del ícono activo
-        unselectedItemColor: Colors.grey, // Color del ícono inactivo
-        onTap: (index) {
-          setState(() {
-            _bottomNavIndex = index;
-          });
-        },
-        items: _getBottomNavItems(_selectedLevel, GlobalVariables.role),
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
+      //   currentIndex: _bottomNavIndex,
+        // selectedItemColor: Colors.blueAccent,
+        // unselectedItemColor: Colors.grey,
+      //   onTap: _onBottomNavTapped,
+      // ),
+
+bottomNavigationBar: BottomNavigationBar(
+  items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
+  currentIndex: _bottomNavIndex,
+  selectedItemColor: Colors.blueAccent,
+  unselectedItemColor: Colors.grey,
+  onTap: (index) {
+    // Obtener el itemCount llamando a _getBottomNavItems antes de la navegación
+    List<BottomNavigationBarItem> items =  _getBottomNavItems(_selectedLevel, userProvider.userRole);
+    int itemCount = items.length;
+
+    // Llamar a la función _onBottomNavTapped con el index y el itemCount
+    _onBottomNavTapped(index, itemCount);
+  },
+  
+),
+
+
+
+
+
+
     );
-  }
-
-  Widget _getBodyBasedOnRoleAndNav(
-      String role, int selectedLevel, int bottomNavIndex) {
-    if (selectedLevel == 0) {
-      if (bottomNavIndex == 0) return const GasTicketListScreen();
-      if (bottomNavIndex == 1) return const OtherScreen();
-      if (bottomNavIndex == 3) return const SettingsPage2();
-      if (bottomNavIndex == 2 && role == 'sales_admin') return const TicketScannerScreen();
-      if (bottomNavIndex == 2 && role == 'dispatcher') return const DispatcherScreen();
-    }
-
-    if (selectedLevel == 1) {
-      if (bottomNavIndex == 0) return const GasTicketListScreen();
-      if (bottomNavIndex == 1) return const OtherScreen();
-      if (bottomNavIndex == 3) return const SettingsPage2();
-    }
-
-    if (selectedLevel == 2) {
-      if (bottomNavIndex == 0) return const GasTicketListScreen();
-      if (bottomNavIndex == 1) return const OtherScreen();
-      if (bottomNavIndex == 3) return const SettingsPage2();
-    }
-
-    if (selectedLevel == 3) {
-      if (bottomNavIndex == 0) return const GasTicketListScreen();
-      if (bottomNavIndex == 1) return const OtherScreen();
-      if (bottomNavIndex == 3) return const SettingsPage2();
-    }
-
-    if (selectedLevel == 4) {
-      if (bottomNavIndex == 0) return const GasTicketListScreen();
-      if (bottomNavIndex == 1) return const OtherScreen();
-      if (bottomNavIndex == 3) return const SettingsPage2();
-    }
-
-    if (selectedLevel == 5) {
-      if (bottomNavIndex == 0) return const GasTicketListScreen();
-      if (bottomNavIndex == 1) return const OtherScreen();
-      if (bottomNavIndex == 3) return const SettingsPage2();
-    }
-    return Center(
-        child: Text('Rol: $role', style: const TextStyle(fontSize: 24)));
   }
 }
