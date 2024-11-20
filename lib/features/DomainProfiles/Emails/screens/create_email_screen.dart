@@ -77,16 +77,16 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
                           const SizedBox(height: 24.0),
 
                           // Botón de creación con ícono
-                          ElevatedButton.icon(
-                            onPressed: _createEmail,
-                            icon: const Icon(Icons.email_outlined),
-                            label: const Text('Registrar Email'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 12),
-                              minimumSize: const Size(double.infinity, 48), // Botón ancho completo
-                            ),
-                          ),
+                          // ElevatedButton.icon(
+                          //   onPressed: _createEmail,
+                          //   icon: const Icon(Icons.email_outlined),
+                          //   label: const Text('Registrar Email'),
+                          //   style: ElevatedButton.styleFrom(
+                          //     padding: const EdgeInsets.symmetric(
+                          //         horizontal: 20, vertical: 12),
+                          //     minimumSize: const Size(double.infinity, 48), // Botón ancho completo
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
@@ -97,6 +97,23 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
           );
         },
       ),
+       // FloatingActionButton
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado por la columna
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+            child: FloatingActionButton.extended(
+              onPressed: _createEmail,
+              tooltip: 'Registrar Email',
+              icon: const Icon(Icons.email_outlined),
+              label: const Text('Registrar Email'),
+            ),
+          ),
+          const SizedBox(height: 16.0), // Espaciador
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 

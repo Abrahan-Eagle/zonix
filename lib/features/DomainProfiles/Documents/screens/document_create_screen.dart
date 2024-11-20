@@ -93,15 +93,33 @@ Future<String?> _compressImage(String filePath) async {
               const SizedBox(height: 16.0),
               if (_selectedType != null) _buildFieldsByType(),
               const SizedBox(height: 16.0),
-              const SizedBox(height: 550.0),
-              ElevatedButton(
-                onPressed: _saveDocument,
-                child: const Text('Guardar Documento'),
-              ),
+     
+              // ElevatedButton(
+              //   onPressed: _saveDocument,
+              //   child: const Text('Guardar Documento'),
+              // ),
             ],
           ),
         ),
       ),
+floatingActionButton: Column(
+  mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado por la columna
+  children: [
+    SizedBox(
+      width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+      child: FloatingActionButton.extended(
+        onPressed: _saveDocument,
+        tooltip: 'Guardar Documento',
+        icon: const Icon(Icons.save),
+        label: const Text('Guardar Documento'),
+      ),
+    ),
+    const SizedBox(height: 16.0), // Espaciador
+  ],
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+
     );
   }
 

@@ -142,16 +142,16 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
                     ),
 
                     // Botón de creación con ícono, separado del formulario
-                    const SizedBox(height: 200.0),
-                    ElevatedButton.icon(
-                      onPressed: _createPhone,
-                      icon: const Icon(Icons.phone),
-                      label: const Text('Registrar Teléfono'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        minimumSize: const Size(double.infinity, 48),
-                      ),
-                    ),
+                    const SizedBox(height: 150.0),
+                    // ElevatedButton.icon(
+                    //   onPressed: _createPhone,
+                    //   icon: const Icon(Icons.phone),
+                    //   label: const Text('Registrar Teléfono'),
+                    //   style: ElevatedButton.styleFrom(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    //     minimumSize: const Size(double.infinity, 48),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -159,6 +159,23 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
           );
         },
       ),
+      // FloatingActionButton
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado por la columna
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+            child: FloatingActionButton.extended(
+              onPressed: _createPhone,
+              tooltip: 'Registrar Teléfono',
+              icon: const Icon(Icons.phone),
+              label: const Text('Registrar Teléfono'),
+            ),
+          ),
+          const SizedBox(height: 16.0), // Espaciador
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 

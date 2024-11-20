@@ -173,50 +173,97 @@ class CreateGasCylinderScreenState extends State<CreateGasCylinderScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        ElevatedButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              final newCylinder = GasCylinder(
-                                gasCylinderCode: _codeController.text,
-                                cylinderType: _selectedCylinderType,
-                                cylinderWeight: _selectedCylinderWeight,
-                                manufacturingDate: _manufacturingDate,
-                                companySupplierId: _selectedSupplierId,
-                              );
+                        // ElevatedButton(
+                        //   onPressed: () async {
+                        //     if (_formKey.currentState!.validate()) {
+                        //       final newCylinder = GasCylinder(
+                        //         gasCylinderCode: _codeController.text,
+                        //         cylinderType: _selectedCylinderType,
+                        //         cylinderWeight: _selectedCylinderWeight,
+                        //         manufacturingDate: _manufacturingDate,
+                        //         companySupplierId: _selectedSupplierId,
+                        //       );
 
-                              try {
-                                await _supplierService.createGasCylinder(
-                                  newCylinder,
-                                  widget.userId,
-                                  imageFile: _imageFile,
-                                );
+                        //       try {
+                        //         await _supplierService.createGasCylinder(
+                        //           newCylinder,
+                        //           widget.userId,
+                        //           imageFile: _imageFile,
+                        //         );
                             
 
-                                if (mounted) { // Verifica si el widget aún está montado
-                                    Provider.of<UserProvider>(context, listen: false).setGasCylindersCreated(true);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Bombona creada con éxito')),
-                                    );
-                                    Navigator.of(context).pop();
-                                  }
+                        //         if (mounted) { // Verifica si el widget aún está montado
+                        //             Provider.of<UserProvider>(context, listen: false).setGasCylindersCreated(true);
+                        //             ScaffoldMessenger.of(context).showSnackBar(
+                        //               const SnackBar(content: Text('Bombona creada con éxito')),
+                        //             );
+                        //             Navigator.of(context).pop();
+                        //           }
 
 
 
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error: $e')),
-                                );
-                              }
-                            }
-                          },
-                          child: const Text('Crear Bombona'),
-                        ),
+                        //       } catch (e) {
+                        //         ScaffoldMessenger.of(context).showSnackBar(
+                        //           SnackBar(content: Text('Error: $e')),
+                        //         );
+                        //       }
+                        //     }
+                        //   },
+                        //   child: const Text('Crear Bombona'),
+                        // ),
                       ],
                     ),
                   );
                 },
               ),
             ),
+
+            floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado por la columna
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+            child: FloatingActionButton.extended(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final newCylinder = GasCylinder(
+                    gasCylinderCode: _codeController.text,
+                    cylinderType: _selectedCylinderType,
+                    cylinderWeight: _selectedCylinderWeight,
+                    manufacturingDate: _manufacturingDate,
+                    companySupplierId: _selectedSupplierId,
+                  );
+
+                  try {
+                    await _supplierService.createGasCylinder(
+                      newCylinder,
+                      widget.userId,
+                      imageFile: _imageFile,
+                    );
+
+                    if (mounted) { // Verifica si el widget aún está montado
+                      Provider.of<UserProvider>(context, listen: false).setGasCylindersCreated(true);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Bombona creada con éxito')),
+                      );
+                      Navigator.of(context).pop();
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              },
+              tooltip: 'Crear Bombona',
+              icon: const Icon(Icons.add),
+              label: const Text('Crear Bombona'),
+            ),
+          ),
+          const SizedBox(height: 16.0), // Espaciador
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

@@ -147,21 +147,30 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
                   const SizedBox(height: 16.0),
                   _buildPostalCodeField(),
                   const SizedBox(height: 200.0),
-                  ElevatedButton.icon(
-                    onPressed: _createAddress,
-                    icon: const Icon(Icons.add_location_alt),
-                    label: const Text('Registrar Dirección'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                  ),
+           
                 ],
               ),
             ),
           ],
         ),
       ),
+    // Aquí es donde se coloca el FloatingActionButton
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado por la columna
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+            child: FloatingActionButton.extended(
+              onPressed: _createAddress, // Tu función para registrar la dirección
+              tooltip: 'Registrar Dirección',
+              icon: const Icon(Icons.add_location_alt), // Icono para registrar dirección
+              label: const Text('Registrar Dirección'),
+            ),
+          ),
+          const SizedBox(height: 16.0), // Espaciador
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, // Ubicación del botón flotante
     );
   }
 
