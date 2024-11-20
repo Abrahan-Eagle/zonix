@@ -27,12 +27,7 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registrar Email'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _createEmail,
-          ),
-        ],
+   
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {

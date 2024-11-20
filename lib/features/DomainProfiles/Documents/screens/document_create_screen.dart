@@ -93,6 +93,7 @@ Future<String?> _compressImage(String filePath) async {
               const SizedBox(height: 16.0),
               if (_selectedType != null) _buildFieldsByType(),
               const SizedBox(height: 16.0),
+              const SizedBox(height: 550.0),
               ElevatedButton(
                 onPressed: _saveDocument,
                 child: const Text('Guardar Documento'),
@@ -417,61 +418,6 @@ Future<void> _saveDocument() async {
     }
   }
 }
-
-
-
-// Future<void> _saveDocument() async {
-//   if (_formKey.currentState!.validate()) {
-//     _formKey.currentState!.save();
-//     try {
-//       // Verificar el tamaño de la imagen antes de enviarla
-//       if (_frontImage != null && await _isImageSizeValid(_frontImage)) {
-//         // Continuar con el guardado del documento
-//         Document document = Document(
-//           id: 0,
-//           type: _selectedType,
-//           number: _number?.toString(),
-//           receiptN: _receiptN,
-//           rifUrl: _rifUrl,
-//           taxDomicile: _taxDomicile,
-//           frontImage: _frontImage,
-//           backImage: _backImage,
-//           issuedAt: _issuedAt,
-//           expiresAt: _expiresAt,
-//           approved: false,
-//           status: true,
-//         );
-
-//         await documentService.createDocument(
-//           document,
-//           widget.userId,
-//           frontImageFile: _getFileFromPath(document.frontImage),
-//           backImageFile: _getFileFromPath(document.backImage),
-//         );
-
-
-//         if (mounted) { // Verifica si el widget aún está montado
-//           Provider.of<UserProvider>(context, listen: false).setDocumentCreated(true);
-//           ScaffoldMessenger.of(context).showSnackBar(
-//             const SnackBar(content: Text('Documento guardado exitosamente')),
-//           );
-//           Navigator.of(context).pop();
-//         }
-
-
-//       } else {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text('La imagen frontal supera los 2 MB.')),
-//         );
-//       }
-//     } catch (e) {
-//       logger.e('Error al guardar el documento: $e');
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error al guardar el documento: $e')),
-//       );
-//     }
-//   }
-// }
 
 Future<bool> _isImageSizeValid(String? path) async {
   if (path == null) return false;

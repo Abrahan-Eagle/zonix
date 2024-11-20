@@ -111,9 +111,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registrar Dirección'),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Registrar Dirección'),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -146,7 +146,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
                   _buildTextField(_houseNumberController, 'N° casa', 'Por favor ingresa el número de la casa'),
                   const SizedBox(height: 16.0),
                   _buildPostalCodeField(),
-                  const SizedBox(height: 16.0),
+                  const SizedBox(height: 200.0),
                   ElevatedButton.icon(
                     onPressed: _createAddress,
                     icon: const Icon(Icons.add_location_alt),

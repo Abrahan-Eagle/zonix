@@ -98,6 +98,7 @@ class MyApp extends StatelessWidget {
   Widget _buildMaterialApp(Widget aboutPage) {
     return MaterialApp(
       title: 'Acerca de Zonix',
+      debugShowCheckedModeBanner: false, // Quitar el banner de depuración
       home: SafeArea(child: aboutPage),
       theme: ThemeData(
         primarySwatch: Colors.blue,
