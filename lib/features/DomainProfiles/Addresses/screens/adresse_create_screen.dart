@@ -53,16 +53,44 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
     super.dispose();
   }
 
+  // Future<void> loadCountries() async {
+  //   try {
+  //     final data = await _addressService.fetchCountries();
+  //     setState(() {
+  //       countries = data;
+  //     });
+  //   } catch (e) {
+  //     _showError('Error al cargar países: $e');
+  //   }
+  // }
+
   Future<void> loadCountries() async {
-    try {
-      final data = await _addressService.fetchCountries();
+  try {
+    final data = await _addressService.fetchCountries();
+    setState(() {
+      countries = data;
+    });
+
+    if (countries.isNotEmpty) {
+      // Seleccionar el país predeterminado (por ejemplo, el primer país o uno específico)
+      final defaultCountry = countries.firstWhere(
+        (country) => country.name == "Venezuela", // Cambia el nombre del país según necesites
+        orElse: () => countries.first, // Si no encuentra, selecciona el primero
+      );
       setState(() {
-        countries = data;
+        selectedCountry = defaultCountry;
       });
-    } catch (e) {
-      _showError('Error al cargar países: $e');
+
+      // Cargar los estados del país seleccionado automáticamente
+      if (defaultCountry != null) {
+        await loadStates(defaultCountry.id);
+      }
     }
+  } catch (e) {
+    _showError('Error al cargar países: $e');
   }
+}
+
 
   Future<void> loadStates(int countryId) async {
     try {
@@ -111,9 +139,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Registrar Dirección'),
-      // ),
+      appBar: AppBar(
+        title: const Text('Registrar Dirección'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -277,6 +305,15 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
   }
 
   Future<void> _createAddress() async {
+
+    // Verifica si las coordenadas están disponibles antes de continuar
+    if (latitude == null || longitude == null) {
+      _showError('Por favor permite acceder a tu ubicación antes de continuar. Asegúrate de activar el GPS.');
+      _captureLocation(); // Captura la ubicación automáticamente al iniciar
+      return; // Detiene el proceso si la ubicación no está disponible
+    }
+
+
     if (_formKey.currentState!.validate() && selectedCity != null) {
       double lat = latitude ?? 0.0;
       double lon = longitude ?? 0.0;
@@ -305,11 +342,14 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Dirección registrada exitosamente')),
           );
-          Navigator.of(context).pop();
+          // Navigator.of(context).pop();
+          // Navigator.of(context).pop(true);
+           Navigator.pop(context, address);
+
         }
 
       } catch (e) {
-        _showError('Error registrando la dirección: $e');
+        _showError('Error: $e');
       }
     } else {
       _showError('Por favor completa todos los campos requeridos.');

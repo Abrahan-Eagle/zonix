@@ -130,7 +130,7 @@ Future<List<StateModel>> fetchStates(int countryId) async {
 
       if (response.statusCode != 201) {
         logger.e('Error al crear la dirección: ${response.statusCode} ${response.body}');
-        throw ApiException('Error al crear la dirección: ${response.body}');
+        throw ApiException('al crear la dirección: ${response.body}');
       }
     } catch (e) {
       logger.e('Error en la solicitud de creación de dirección: $e');
