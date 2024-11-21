@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
 import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';  // Asegúrate de importar el paquete correcto
-
+import 'package:intl/intl.dart';
+import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
 class TicketDetailsDrawer extends StatefulWidget {
   final AnimationController controller;
   final GasTicket? selectedTicket;
@@ -116,22 +117,34 @@ Widget _buildQRCode(GasTicket ticket) {
   );
 }
 
+String _formatDate(String date) {
+  try {
+    final parsedDate = DateTime.parse(date);  // Convierte el string a DateTime
+    final formattedDate = DateFormat('dd/MM/yyyy').format(parsedDate);  // Formatea la fecha
+    return formattedDate;
+  } catch (e) {
+    return date;  // Si no puede parsear la fecha, devuelve el string original
+  }
+}
+
+
 
   List<Widget> _buildTicketDetailsItems(GasTicket ticket) {
     return [
-      _buildDetailSection('Información del Ticket', [
+      _buildDetailSection('Detalles del Ticket', [
         'Ticket #: ${ticket.queuePosition}',
-        'Cita: ${ticket.appointmentDate}',
-        'Posición de tiempo: ${ticket.timePosition}',
-        'Fecha reservada: ${ticket.reservedDate}',
-        'Fecha de vencimiento: ${ticket.expiryDate}',
-        'Estado: ${ticket.status}',
+        'Hora asignada: ${ticket.timePosition}',
+        'Cita agendada: ${_formatDate(ticket.appointmentDate)}',        
+        'Fecha de solicitud: ${_formatDate(ticket.reservedDate)}',  // Formatea la fecha reservada
+        'Fecha de expiración: ${_formatDate(ticket.expiryDate)}',  // Formatea la fecha de vencimiento
+        'Estado actual: ${StatusProvider().getStatusSpanish(ticket.status)}',
+         // 'Estado: ${ticket.status}',
       ]),
-      _buildDetailSection('Detalles del Perfil', [
-        'Nombre: ${ticket.firstName} ${ticket.lastName}',
+      _buildDetailSection('Datos del Usuario', [
+        'Solicitante: ${ticket.firstName} ${ticket.lastName}',
         'Teléfono: ${ticket.phoneNumbers}', // Asumiendo que hay al menos un teléfono
         'Dirección: ${ticket.addresses}', // Se asume que hay al menos una dirección
-      ]),
+      ]), 
 
       _buildDetailSection('Información de la Bombona de Gas', [
         'Código de la bombona: ${ticket.gasCylinderCode}',

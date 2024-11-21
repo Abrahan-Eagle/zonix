@@ -200,13 +200,22 @@ class SignInScreenState extends State<SignInScreen> {
 
         const SizedBox(height: 24),
 
+        // Container(
+        //   padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
+        //   child: Image.network(
+        //     'https://i.ibb.co/cJqsPSB/scooter.png', // URL de la imagen
+        //     fit: BoxFit.cover,
+        //   ),
+        // ),
+
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
-          child: Image.network(
-            'https://i.ibb.co/cJqsPSB/scooter.png', // URL de la imagen
+          child: Image.asset(
+            'assets/onboarding/scooter.png', // Ruta de la imagen local
             fit: BoxFit.cover,
           ),
         ),
+
 
         const Spacer(),
 
