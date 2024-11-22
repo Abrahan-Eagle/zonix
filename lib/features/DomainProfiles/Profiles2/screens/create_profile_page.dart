@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/utils/user_provider.dart';
-import 'package:image/image.dart' as img;
-
 
 class CreateProfilePage extends StatefulWidget {
   final int userId;
@@ -41,68 +39,15 @@ class CreateProfilePageState extends State<CreateProfilePage> {
     );
   }
 
-  @override
-    void dispose() {
-      _dateController.dispose();
-      super.dispose();
-    }
-
-  // Future<void> _pickImage() async {
-  //   final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-  //   if (pickedFile != null) {
-  //     setState(() {
-  //       _imageFile = File(pickedFile.path);
-  //       _profile = _profile.copyWith(photo: _imageFile!.path);
-  //     });
-  //   }
-  // }
-
-  // Future<void> _takePhoto() async {
-  //   final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-  //   if (pickedFile != null) {
-  //     setState(() {
-  //       _imageFile = File(pickedFile.path);
-  //       _profile = _profile.copyWith(photo: _imageFile!.path);
-  //     });
-  //   }
-  // }
-
- // Método para comprimir la imagen
-  Future<File> compressImage(File imageFile) async {
-    // Cargar la imagen
-    img.Image image = img.decodeImage(imageFile.readAsBytesSync())!;
-
-    // Intentamos reducir la calidad hasta 2MB
-    int quality = 85;  // Comenzamos con una calidad del 85%
-    int maxSize = 2 * 1024 * 1024; // 2MB en bytes
-
-    // Comprimir y verificar el tamaño
-    List<int> compressedImageBytes = img.encodeJpg(image, quality: quality);
-    while (compressedImageBytes.length > maxSize && quality > 20) {
-      quality -= 5;  // Reducir la calidad por 5 cada vez
-      compressedImageBytes = img.encodeJpg(image, quality: quality);
-    }
-
-    // Guardar la imagen comprimida
-    File compressedFile = await File(imageFile.path).writeAsBytes(compressedImageBytes);
-
-    return compressedFile;
-  }
-
-  // Método para tomar la foto
-  Future<void> _takePhoto() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      // Comprimir la imagen después de tomarla
-      File compressedImage = await compressImage(File(pickedFile.path));
-
       setState(() {
-        _imageFile = compressedImage;
+        _imageFile = File(pickedFile.path);
         _profile = _profile.copyWith(photo: _imageFile!.path);
       });
     }
   }
-
 
   Future<void> _pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -197,17 +142,10 @@ class CreateProfilePageState extends State<CreateProfilePage> {
                   }
                 },
               ),
-              // ElevatedButton(
-              //   onPressed: _pickImage,
-              //   child: const Text('Seleccionar Foto'),
-              // ),
-
-              ElevatedButton.icon(
-                onPressed: _takePhoto,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Abrir Cámara'),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: const Text('Seleccionar Foto'),
               ),
-
               if (_imageFile != null) ...[
                 const SizedBox(height: 16),
                 Image.file(_imageFile!, height: 150),
@@ -232,7 +170,6 @@ class CreateProfilePageState extends State<CreateProfilePage> {
                   DropdownMenuItem(value: 'divorced', child: Text('Divorciado')),
                   DropdownMenuItem(value: 'single', child: Text('Soltero')),
                 ],
-                validator: (value) => value == null ? 'Seleccione un estado civil' : null, // NUEVO
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {

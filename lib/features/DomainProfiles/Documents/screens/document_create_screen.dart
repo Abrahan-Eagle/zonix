@@ -62,22 +62,70 @@ Future<void> _pickImage(ImageSource source, ValueSetter<String?> onImageSelected
   }
 }
 
-Future<String?> _compressImage(String filePath) async {
-  // Cargar la imagen
-  final imageFile = File(filePath);
-  final originalImage = img.decodeImage(await imageFile.readAsBytes());
+// Future<String?> _compressImage(String filePath) async {
+//   // Cargar la imagen
+//   final imageFile = File(filePath);
+//   final originalImage = img.decodeImage(await imageFile.readAsBytes());
 
-  if (originalImage == null) return null;
+//   if (originalImage == null) return null;
 
-  // Comprimir la imagen
-  int quality = 85; // Establece un porcentaje de calidad
-  List<int> compressedBytes = img.encodeJpg(originalImage, quality: quality);
+//   // Comprimir la imagen
+//   int quality = 85; // Establece un porcentaje de calidad
+//   List<int> compressedBytes = img.encodeJpg(originalImage, quality: quality);
   
-  // Guardar la imagen comprimida en un nuevo archivo temporal
-  final compressedImageFile = await File('${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}').writeAsBytes(compressedBytes);
+//   // Guardar la imagen comprimida en un nuevo archivo temporal
+//   final compressedImageFile = await File('${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}').writeAsBytes(compressedBytes);
 
-  return compressedImageFile.path; // Devuelve la ruta del archivo comprimido
+//   return compressedImageFile.path; // Devuelve la ruta del archivo comprimido
+// }
+
+Future<String?> _compressImage(String filePath) async {
+  try {
+    final imageFile = File(filePath);
+
+    // Verificar si la imagen ya es menor a 2 MB
+    if (await imageFile.length() <= 2 * 1024 * 1024) {
+      return filePath; // Devolver la misma imagen si no necesita compresión
+    }
+
+    final originalImage = img.decodeImage(await imageFile.readAsBytes());
+    if (originalImage == null) {
+      debugPrint("No se pudo decodificar la imagen.");
+      return null; // Si no se puede decodificar, devuelve null
+    }
+
+    String extension = filePath.split('.').last.toLowerCase();
+    int quality = 85; // Calidad inicial
+    List<int> compressedBytes;
+
+    if (extension == 'png') {
+      // Compresión para PNG
+      compressedBytes = img.encodePng(originalImage, level: 6);
+    } else {
+      // Compresión para JPG
+      compressedBytes = img.encodeJpg(originalImage, quality: quality);
+
+      // Reducir calidad iterativamente si es mayor a 2 MB
+      while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
+        quality -= 5;
+        compressedBytes = img.encodeJpg(originalImage, quality: quality);
+      }
+    }
+
+    // Guardar la imagen comprimida
+    final compressedImageFile = await File(
+      '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
+    ).writeAsBytes(compressedBytes);
+
+    debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
+    return compressedImageFile.path;
+
+  } catch (e) {
+    debugPrint("Error al comprimir la imagen: $e");
+    return null;
+  }
 }
+
 
   @override
   Widget build(BuildContext context) {
