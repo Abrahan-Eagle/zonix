@@ -89,19 +89,72 @@ class CreateProfilePageState extends State<CreateProfilePage> {
     return compressedFile;
   }
 
-  // Método para tomar la foto
-  Future<void> _takePhoto() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      // Comprimir la imagen después de tomarla
-      File compressedImage = await compressImage(File(pickedFile.path));
+//   // Método para tomar la foto
+//   Future<void> _takePhoto() async {
+//     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+//     if (pickedFile != null) {
+//       // Comprimir la imagen después de tomarla
+//       File compressedImage = await compressImage(File(pickedFile.path));
 
-      setState(() {
-        _imageFile = compressedImage;
-        _profile = _profile.copyWith(photo: _imageFile!.path);
-      });
-    }
+//       setState(() {
+//         _imageFile = compressedImage;
+//         _profile = _profile.copyWith(photo: _imageFile!.path);
+//       });
+//     }
+//   }
+
+
+
+
+// Future<File> compressImage(File imageFile) async {
+//   try {
+//     // Cargar la imagen
+//     img.Image? image = img.decodeImage(await imageFile.readAsBytes());
+//     if (image == null) {
+//       throw Exception("No se pudo decodificar la imagen.");
+//     }
+
+//     // Establecer parámetros de compresión
+//     int quality = 85;  // Calidad inicial
+//     int maxSize = (1.5 * 1024 * 1024).toInt(); // 1.5 MB en bytes
+//     List<int> compressedImageBytes = img.encodeJpg(image, quality: quality);
+
+//     // Comprimir iterativamente hasta que el tamaño sea menor a 1.5 MB o alcanzar el límite de calidad
+//     while (compressedImageBytes.length > maxSize && quality > 20) {
+//       quality -= 5;  // Reducir la calidad por 5 cada vez
+//       compressedImageBytes = img.encodeJpg(image, quality: quality);
+//     }
+
+//     // Si la calidad llega a 20 y no cumple con el tamaño deseado, simplemente comprimir con calidad mínima
+//     if (compressedImageBytes.length > maxSize && quality <= 20) {
+//       compressedImageBytes = img.encodeJpg(image, quality: 20);
+//     }
+
+//     // Guardar la imagen comprimida
+//     final compressedFile = await File(imageFile.path)
+//         .writeAsBytes(compressedImageBytes);
+//     return compressedFile;
+//   } catch (e) {
+//     // Manejo de errores
+//     print("Error al comprimir la imagen: $e");
+//     rethrow;  // Lanza el error para que pueda ser manejado más arriba si es necesario
+//   }
+// }
+
+
+// Método para tomar la foto
+Future<void> _takePhoto() async {
+  final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+  if (pickedFile != null) {
+    // Comprimir la imagen después de tomarla
+    File compressedImage = await compressImage(File(pickedFile.path));
+
+    setState(() {
+      _imageFile = compressedImage;
+      _profile = _profile.copyWith(photo: _imageFile!.path);
+    });
   }
+}
 
 
   Future<void> _pickDate(BuildContext context) async {

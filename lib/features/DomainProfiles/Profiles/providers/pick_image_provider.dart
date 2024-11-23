@@ -25,22 +25,57 @@ class CameraPickerExampleState extends State<CameraPickerExample> {
     }
   }
 
+  // Future<String?> _compressImage(String filePath) async {
+  //   final imageFile = File(filePath);
+  //   final originalImage = img.decodeImage(await imageFile.readAsBytes());
+
+  //   if (originalImage == null) return null;
+
+  //   // Comprimir la imagen
+  //   const  quality =  85;
+  //   final compressedBytes = img.encodeJpg(originalImage, quality: quality);
+
+  //   // Guardar la imagen comprimida en un nuevo archivo temporal
+  //   final compressedFile = await File('${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}')
+  //       .writeAsBytes(compressedBytes);
+
+  //   return compressedFile.path;
+  // }
+
+
   Future<String?> _compressImage(String filePath) async {
+  try {
     final imageFile = File(filePath);
     final originalImage = img.decodeImage(await imageFile.readAsBytes());
 
-    if (originalImage == null) return null;
+    if (originalImage == null) {
+      debugPrint("No se pudo decodificar la imagen.");
+      return null;
+    }
 
-    // Comprimir la imagen
-    const  quality =  85;
-    final compressedBytes = img.encodeJpg(originalImage, quality: quality);
+    // Establecer la calidad inicial (puedes ajustarlo a 85 o un valor mayor si deseas menos compresión)
+    int quality = 85;
+    const maxSize = 2 * 1024 * 1024; // 1.5 MB en bytes
+    List<int> compressedBytes = img.encodeJpg(originalImage, quality: quality);
 
-    // Guardar la imagen comprimida en un nuevo archivo temporal
-    final compressedFile = await File('${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}')
+    // Reducir la calidad iterativamente hasta que el tamaño sea menor a 1.5 MB
+    while (compressedBytes.length > maxSize && quality > 10) {
+      quality -= 5;  // Reducir calidad en pasos de 5
+      compressedBytes = img.encodeJpg(originalImage, quality: quality);
+    }
+
+    // Guardar la imagen comprimida en un nuevo archivo
+    final compressedFile = await File('${imageFile.parent.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg')
         .writeAsBytes(compressedBytes);
 
+    debugPrint("Imagen comprimida guardada en: ${compressedFile.path}");
     return compressedFile.path;
+  } catch (e) {
+    debugPrint("Error al comprimir la imagen: $e");
+    return null;
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
