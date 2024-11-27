@@ -43,9 +43,14 @@ dependencies:
   about: ^2.2.0
   package_info_plus: ^8.1.0
   qr_flutter: ^4.1.0
- 
- 
-  
+  google_mlkit_image_labeling: ^0.13.0
+  google_mlkit_face_detection: ^0.12.0
+  google_mlkit_barcode_scanning: ^0.13.0
+  google_mlkit_text_recognition: ^0.14.0
+  google_fonts: ^6.2.1
+  google_mlkit_commons: ^0.9.0
+  camera: ^0.11.0+2
+    
   
 
 dev_dependencies:

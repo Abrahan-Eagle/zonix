@@ -84,42 +84,49 @@ Widget build(BuildContext context) {
   );
 }
 
-  Widget _buildProfileDetails(BuildContext context, Profile profile) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildProfileField('Nombre', profile.firstName),
-        _buildProfileField('Segundo Nombre', profile.middleName ?? 'N/A'),
-        _buildProfileField('Apellido', profile.lastName),
-        _buildProfileField('Segundo Apellido', profile.secondLastName ?? 'N/A'),
-        _buildProfileField('Fecha de Nacimiento', profile.dateOfBirth ?? 'N/A'),
-        _buildProfileField('Estado Civil', profile.maritalStatus ?? 'N/A'),
-        _buildProfileField('Sexo', profile.sex),
-        const Spacer(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FloatingActionButton.extended(
-              onPressed: () => _navigateToEditOrCreatePage(context, profile),
-              label: profile == null ? const Text('Crear Perfil') : const Text('Editar Perfil'),
-              icon: profile == null ? const Icon(Icons.person_add) : const Icon(Icons.edit),
-            ),
-          ],
-        ),
-        const Spacer(),
-      ],
-    );
+ String translateMaritalStatus(String status) {
+  switch (status) {
+    case 'single':
+      return 'Soltero';
+    case 'married':
+      return 'Casado';
+    case 'divorced':
+      return 'Divorciado';
+    default:
+      return 'N/A';
   }
+}
 
-  Widget _buildNoProfile() {
-    return const Center(
-      child: Text(
-        'No se encontró un perfil. Por favor, crea uno.',
-        style: TextStyle(fontSize: 18),
+Widget _buildProfileDetails(BuildContext context, Profile profile) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _buildProfileField('Nombre', profile.firstName),
+      if (profile.middleName != null && profile.middleName!.isNotEmpty)
+        _buildProfileField('Segundo Nombre', profile.middleName!),
+      _buildProfileField('Apellido', profile.lastName),
+      if (profile.secondLastName != null && profile.secondLastName!.isNotEmpty)
+        _buildProfileField('Segundo Apellido', profile.secondLastName!),
+      _buildProfileField('Fecha de Nacimiento', profile.dateOfBirth ?? 'N/A'),
+      _buildProfileField('Estado Civil', translateMaritalStatus(profile.maritalStatus ?? 'N/A')),
+      _buildProfileField('Sexo', profile.sex),
+      const Spacer(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FloatingActionButton.extended(
+            onPressed: () => _navigateToEditOrCreatePage(context, profile),
+            label: const Text('Editar Perfil'),
+            icon: const Icon(Icons.edit),
+          ),
+        ],
       ),
-    );
-  }
+      const Spacer(),
+    ],
+  );
+}
 
+ 
   void _navigateToEditOrCreatePage(BuildContext context, Profile profile) {
     final route = profile == null
         ? MaterialPageRoute(builder: (context) => CreateProfilePage(userId: profile.userId))

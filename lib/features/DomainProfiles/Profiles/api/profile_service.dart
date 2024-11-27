@@ -66,9 +66,9 @@ Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async
       ..headers['Authorization'] = 'Bearer $token'
       ..headers['Accept'] = 'application/json'
       ..fields['firstName'] = profile.firstName
-      ..fields['middleName'] = profile.middleName
+      ..fields['middleName'] = profile.middleName ?? '' 
       ..fields['lastName'] = profile.lastName
-      ..fields['secondLastName'] = profile.secondLastName
+      ..fields['secondLastName'] = profile.secondLastName ?? ''
       ..fields['date_of_birth'] = profile.dateOfBirth
       ..fields['maritalStatus'] = profile.maritalStatus
       ..fields['sex'] = profile.sex
@@ -114,9 +114,9 @@ Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async
         ..headers['Authorization'] = 'Bearer $token'
         ..headers['Accept'] = 'application/json'
         ..fields['firstName'] = profile.firstName
-        ..fields['middleName'] = profile.middleName
+        ..fields['middleName'] = profile.middleName ?? '' 
         ..fields['lastName'] = profile.lastName
-        ..fields['secondLastName'] = profile.secondLastName
+        ..fields['secondLastName'] = profile.secondLastName ?? ''
         ..fields['date_of_birth'] = profile.dateOfBirth
         ..fields['maritalStatus'] = profile.maritalStatus
         ..fields['sex'] = profile.sex;

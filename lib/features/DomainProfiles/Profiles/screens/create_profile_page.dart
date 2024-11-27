@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:image/image.dart' as img;
-
+import 'package:intl/intl.dart';
 
 class CreateProfilePage extends StatefulWidget {
   final int userId;
@@ -21,8 +23,9 @@ class CreateProfilePageState extends State<CreateProfilePage> {
   final _formKey = GlobalKey<FormState>();
   late Profile _profile;
   final TextEditingController _dateController = TextEditingController();
-  File? _imageFile; 
+  File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  bool _isDetecting = false;
 
   @override
   void initState() {
@@ -42,159 +45,241 @@ class CreateProfilePageState extends State<CreateProfilePage> {
   }
 
   @override
-    void dispose() {
-      _dateController.dispose();
-      super.dispose();
-    }
-
-  // Future<void> _pickImage() async {
-  //   final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-  //   if (pickedFile != null) {
-  //     setState(() {
-  //       _imageFile = File(pickedFile.path);
-  //       _profile = _profile.copyWith(photo: _imageFile!.path);
-  //     });
-  //   }
-  // }
-
-  // Future<void> _takePhoto() async {
-  //   final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-  //   if (pickedFile != null) {
-  //     setState(() {
-  //       _imageFile = File(pickedFile.path);
-  //       _profile = _profile.copyWith(photo: _imageFile!.path);
-  //     });
-  //   }
-  // }
-
- // Método para comprimir la imagen
-  Future<File> compressImage(File imageFile) async {
-    // Cargar la imagen
-    img.Image image = img.decodeImage(imageFile.readAsBytesSync())!;
-
-    // Intentamos reducir la calidad hasta 2MB
-    int quality = 85;  // Comenzamos con una calidad del 85%
-    int maxSize = 2 * 1024 * 1024; // 2MB en bytes
-
-    // Comprimir y verificar el tamaño
-    List<int> compressedImageBytes = img.encodeJpg(image, quality: quality);
-    while (compressedImageBytes.length > maxSize && quality > 20) {
-      quality -= 5;  // Reducir la calidad por 5 cada vez
-      compressedImageBytes = img.encodeJpg(image, quality: quality);
-    }
-
-    // Guardar la imagen comprimida
-    File compressedFile = await File(imageFile.path).writeAsBytes(compressedImageBytes);
-
-    return compressedFile;
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
   }
 
-//   // Método para tomar la foto
-//   Future<void> _takePhoto() async {
-//     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-//     if (pickedFile != null) {
-//       // Comprimir la imagen después de tomarla
-//       File compressedImage = await compressImage(File(pickedFile.path));
+  
+Future<String?> _compressImage(String filePath) async {
+  try {
+    // Muestra el indicador de carga
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
 
-//       setState(() {
-//         _imageFile = compressedImage;
-//         _profile = _profile.copyWith(photo: _imageFile!.path);
-//       });
-//     }
-//   }
+    final imageFile = File(filePath);
 
+    // Si el tamaño de la imagen es menor o igual a 2MB, no se comprime
+    if (await imageFile.length() <= 2 * 1024 * 1024) return filePath;
 
+    final originalImage = img.decodeImage(await imageFile.readAsBytes());
+    if (originalImage == null) return null;
 
+    List<int> compressedBytes;
+    String extension = filePath.split('.').last.toLowerCase();
+    int quality = 85;
 
-// Future<File> compressImage(File imageFile) async {
-//   try {
-//     // Cargar la imagen
-//     img.Image? image = img.decodeImage(await imageFile.readAsBytes());
-//     if (image == null) {
-//       throw Exception("No se pudo decodificar la imagen.");
-//     }
+    if (extension == 'png') {
+      compressedBytes = img.encodePng(originalImage, level: 6);
+    } else {
+      compressedBytes = img.encodeJpg(originalImage, quality: quality);
+      while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
+        quality -= 5;
+        compressedBytes = img.encodeJpg(originalImage, quality: quality);
+      }
+    }
 
-//     // Establecer parámetros de compresión
-//     int quality = 85;  // Calidad inicial
-//     int maxSize = (1.5 * 1024 * 1024).toInt(); // 1.5 MB en bytes
-//     List<int> compressedImageBytes = img.encodeJpg(image, quality: quality);
+    final compressedImageFile = await File(
+      '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
+    ).writeAsBytes(compressedBytes);
 
-//     // Comprimir iterativamente hasta que el tamaño sea menor a 1.5 MB o alcanzar el límite de calidad
-//     while (compressedImageBytes.length > maxSize && quality > 20) {
-//       quality -= 5;  // Reducir la calidad por 5 cada vez
-//       compressedImageBytes = img.encodeJpg(image, quality: quality);
-//     }
+    // Cierra el diálogo de carga
+    Navigator.of(context).pop();
 
-//     // Si la calidad llega a 20 y no cumple con el tamaño deseado, simplemente comprimir con calidad mínima
-//     if (compressedImageBytes.length > maxSize && quality <= 20) {
-//       compressedImageBytes = img.encodeJpg(image, quality: 20);
-//     }
-
-//     // Guardar la imagen comprimida
-//     final compressedFile = await File(imageFile.path)
-//         .writeAsBytes(compressedImageBytes);
-//     return compressedFile;
-//   } catch (e) {
-//     // Manejo de errores
-//     print("Error al comprimir la imagen: $e");
-//     rethrow;  // Lanza el error para que pueda ser manejado más arriba si es necesario
-//   }
-// }
-
-
-// Método para tomar la foto
-Future<void> _takePhoto() async {
-  final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-  if (pickedFile != null) {
-    // Comprimir la imagen después de tomarla
-    File compressedImage = await compressImage(File(pickedFile.path));
-
-    setState(() {
-      _imageFile = compressedImage;
-      _profile = _profile.copyWith(photo: _imageFile!.path);
-    });
+    return compressedImageFile.path;
+  } catch (e) {
+    // Cierra el diálogo de carga en caso de error
+    Navigator.of(context).pop();
+    debugPrint("Error al comprimir la imagen: $e");
+    return null;
   }
 }
 
 
-  Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      String? compressedImagePath = await _compressImage(pickedFile.path);
+      if (compressedImagePath != null) {
+        setState(() {
+          _imageFile = File(compressedImagePath);
+          _profile = _profile.copyWith(photo: _imageFile!.path);
+        });
+        await _faceDetect();
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No se seleccionó ninguna imagen.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.fixed,
+          action: SnackBarAction(label: 'OK', onPressed: () {}),
+        ),
+      );
+    }
+  }
 
-    if (picked != null) {
-      _dateController.text = picked.toIso8601String().substring(0, 10);
+  Future<void> _faceDetect() async {
+    if (_imageFile == null || _isDetecting) return;
+
+    setState(() {
+      _isDetecting = true;
+    });
+
+    try {
+      final InputImage inputImage = InputImage.fromFile(_imageFile!);
+      final FaceDetector faceDetector = FaceDetector(
+        options: FaceDetectorOptions(
+          enableLandmarks: true,
+          enableClassification: true,
+        ),
+      );
+
+      final List<Face> faces = await faceDetector.processImage(inputImage);
+
+      if (faces.isEmpty) {
+        setState(() {
+          _imageFile = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'No se detectó un rostro. Por favor, asegúrate de que tu cara esté visible.',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.fixed,
+            action: SnackBarAction(label: 'OK', onPressed: () {}),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Rostro identificado correctamente: ${faces.length}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.fixed,
+            action: SnackBarAction(label: 'OK', onPressed: () {}),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error al procesar la imagen: $e',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.fixed,
+          action: SnackBarAction(label: 'OK', onPressed: () {}),
+        ),
+      );
+    } finally {
       setState(() {
-        _profile = _profile.copyWith(dateOfBirth: _dateController.text);
+        _isDetecting = false;
       });
     }
   }
 
-  Future<void> _createProfile() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      try {
-        // Asegúrate de pasar correctamente el userId y la imagen.
-        await ProfileService().createProfile(_profile, widget.userId, imageFile: _imageFile);
 
-        // Actualiza el estado de `profileCreated` en `UserProvider` al crear el perfil con éxito
-        context.read<UserProvider>().setProfileCreated(true);
 
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al crear perfil: $e')),
-          );
-        }
+Future<void> _pickDate(BuildContext context) async {
+  final picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(1900),
+    lastDate: DateTime.now(),
+  );
+
+  if (picked != null) {
+    // Formateamos la fecha para mostrarla en el formato 'dd-MM-yyyy'
+    String displayedDate = DateFormat('dd-MM-yyyy').format(picked);
+    _dateController.text = displayedDate; // Mostrar fecha en la interfaz
+
+    // Guardar la fecha en el formato 'yyyy-MM-dd' para la base de datos
+    String savedDate = DateFormat('yyyy-MM-dd').format(picked);
+
+    setState(() {
+      _profile = _profile.copyWith(dateOfBirth: savedDate); // Guardar en formato adecuado para la DB
+    });
+  }
+}
+
+Future<void> _createProfile() async {
+  if (_formKey.currentState!.validate()) {
+    _formKey.currentState!.save();
+
+    // Verificar si la imagen ha sido tomada
+    if (_imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Por favor, tome una foto.',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.fixed,
+        ),
+      );
+      return; // No continuar si no hay imagen
+    }
+
+    try {
+      await ProfileService().createProfile(_profile, widget.userId, imageFile: _imageFile);
+      context.read<UserProvider>().setProfileCreated(true);
+
+      // Mostrar el SnackBar de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Fue registrado exitosamente.',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.fixed,
+          action: SnackBarAction(
+            label: 'OK', 
+            onPressed: () {},
+          ),
+        ),
+      );
+
+      // Verificar si el widget aún está montado
+  if (mounted) {
+    // Regresar a la pantalla de perfil (ProfilePage) reemplazando la pantalla actual
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePagex(userId: widget.userId)), // Pasa el perfil a la página
+    );
+  }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error al crear perfil: $e',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.fixed,
+            action: SnackBarAction(label: 'OK', onPressed: () {}),
+          ),
+        );
       }
     }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +291,32 @@ Future<void> _takePhoto() async {
           key: _formKey,
           child: Column(
             children: [
+
+
+if (_imageFile != null)
+  Card(
+    elevation: 4.0,  // Puedes ajustar la elevación de la card
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
+    ),
+    margin: const EdgeInsets.all(16.0), // Espaciado exterior
+    child: AspectRatio(
+      aspectRatio: 16 / 10,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10.0), // Asegura que las esquinas de la imagen coincidan
+        child: Image.file(
+          _imageFile!,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+      ),
+    ),
+  ),
+
+
+              const SizedBox(height: 16),
+
+
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Nombre'),
                 validator: (value) {
@@ -250,21 +361,7 @@ Future<void> _takePhoto() async {
                   }
                 },
               ),
-              // ElevatedButton(
-              //   onPressed: _pickImage,
-              //   child: const Text('Seleccionar Foto'),
-              // ),
-
-              ElevatedButton.icon(
-                onPressed: _takePhoto,
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Abrir Cámara'),
-              ),
-
-              if (_imageFile != null) ...[
-                const SizedBox(height: 16),
-                Image.file(_imageFile!, height: 150),
-              ],
+        
               TextFormField(
                 controller: _dateController,
                 decoration: InputDecoration(
@@ -277,15 +374,16 @@ Future<void> _takePhoto() async {
                 readOnly: true,
                 validator: (value) => value == null || value.isEmpty ? 'Seleccione una fecha' : null,
               ),
+              
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+             DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Estado Civil'),
                 items: const [
                   DropdownMenuItem(value: 'married', child: Text('Casado')),
                   DropdownMenuItem(value: 'divorced', child: Text('Divorciado')),
                   DropdownMenuItem(value: 'single', child: Text('Soltero')),
                 ],
-                validator: (value) => value == null ? 'Seleccione un estado civil' : null, // NUEVO
+                validator: (value) => value == null ? 'Seleccione un estado civil' : null,
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -294,13 +392,15 @@ Future<void> _takePhoto() async {
                   }
                 },
               ),
+
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+             DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Sexo'),
                 items: const [
                   DropdownMenuItem(value: 'F', child: Text('Femenino')),
                   DropdownMenuItem(value: 'M', child: Text('Masculino')),
                 ],
+                validator: (value) => value == null ? 'Seleccione un sexo' : null,
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -309,222 +409,64 @@ Future<void> _takePhoto() async {
                   }
                 },
               ),
+
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _createProfile,
-                child: const Text('Crear Perfil'),
-              ),
+              // ElevatedButton(
+              //   onPressed: _createProfile,
+              //   child: const Text('Crear Perfil'),
+              // ),
             ],
           ),
         ),
       ),
+    
+floatingActionButton: Stack(
+  children: [
+    // Botón para capturar foto
+    Positioned(
+      right: 10,
+      bottom: 85, // Separación del botón inferior
+      child: FloatingActionButton(
+        onPressed: _pickImage,
+        backgroundColor: Colors.blue, // Color distintivo
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:  [
+            Icon(Icons.camera_alt, size: 20), // Ícono
+            Text(
+              'Foto',
+              style: TextStyle(fontSize: 10, color: Colors.white),
+            ), // Texto dentro del botón
+          ],
+        ),
+      ),
+    ),
+    // Botón para guardar perfil
+    Positioned(
+      right: 10,
+      bottom: 11, // Espaciado desde el borde inferior
+      child: FloatingActionButton(
+        onPressed: _createProfile,
+        backgroundColor: Colors.green, // Color distintivo
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:  [
+            Icon(Icons.save, size: 20), // Ícono
+            Text(
+              'Guardar',
+              style: TextStyle(fontSize: 10, color: Colors.white),
+            ), // Texto dentro del botón
+          ],
+        ),
+      ),
+    ),
+  ],
+),
+
+
     );
   }
 }
 
-
-
-
-
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-// import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
-
-// class CreateProfilePage extends StatefulWidget {
-//   final int userId;
-
-//   const CreateProfilePage({super.key, required this.userId});
-
-//   @override
-//   CreateProfilePageState createState() => CreateProfilePageState();
-// }
-
-// class CreateProfilePageState extends State<CreateProfilePage> {
-//   final _formKey = GlobalKey<FormState>();
-//   late Profile _profile;
-//   final TextEditingController _dateController = TextEditingController();
-//   File? _imageFile; 
-//   final ImagePicker _picker = ImagePicker();
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _profile = Profile(
-//       id: 0,
-//       userId: widget.userId,
-//       firstName: '',
-//       middleName: '',
-//       lastName: '',
-//       secondLastName: '',
-//       photo: null,
-//       dateOfBirth: '',
-//       maritalStatus: '',
-//       sex: '',
-//     );
-//   }
-
-//   Future<void> _pickImage() async {
-//     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-//     if (pickedFile != null) {
-//       setState(() {
-//         _imageFile = File(pickedFile.path);
-//         _profile = _profile.copyWith(photo: _imageFile!.path);
-//       });
-//     }
-//   }
-
-//   Future<void> _pickDate(BuildContext context) async {
-//     final picked = await showDatePicker(
-//       context: context,
-//       initialDate: DateTime.now(),
-//       firstDate: DateTime(1900),
-//       lastDate: DateTime.now(),
-//     );
-
-//     if (picked != null) {
-//       _dateController.text = picked.toIso8601String().substring(0, 10);
-//       setState(() {
-//         _profile = _profile.copyWith(dateOfBirth: _dateController.text);
-//       });
-//     }
-//   }
-
-//   Future<void> _createProfile() async {
-//     if (_formKey.currentState!.validate()) {
-//       _formKey.currentState!.save();
-//       try {
-//         // Asegúrate de pasar correctamente el userId y la imagen.
-//         await ProfileService().createProfile(_profile, widget.userId, imageFile: _imageFile);
-
-//         if (mounted) {
-//           Navigator.pop(context);
-//         }
-//       } catch (e) {
-//         if (mounted) {
-//           ScaffoldMessenger.of(context).showSnackBar(
-//             SnackBar(content: Text('Error al crear perfil: $e')),
-//           );
-//         }
-//       }
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Crear Perfil')),
-//       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Form(
-//           key: _formKey,
-//           child: Column(
-//             children: [
-//               TextFormField(
-//                 decoration: const InputDecoration(labelText: 'Nombre'),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Por favor, ingrese su nombre';
-//                   }
-//                   return null;
-//                 },
-//                 onSaved: (value) {
-//                   if (value != null) {
-//                     _profile = _profile.copyWith(firstName: value);
-//                   }
-//                 },
-//               ),
-//               TextFormField(
-//                 decoration: const InputDecoration(labelText: 'Segundo Nombre'),
-//                 onSaved: (value) {
-//                   if (value != null) {
-//                     _profile = _profile.copyWith(middleName: value);
-//                   }
-//                 },
-//               ),
-//               TextFormField(
-//                 decoration: const InputDecoration(labelText: 'Apellido'),
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) {
-//                     return 'Por favor, ingrese su apellido';
-//                   }
-//                   return null;
-//                 },
-//                 onSaved: (value) {
-//                   if (value != null) {
-//                     _profile = _profile.copyWith(lastName: value);
-//                   }
-//                 },
-//               ),
-//               TextFormField(
-//                 decoration: const InputDecoration(labelText: 'Segundo Apellido'),
-//                 onSaved: (value) {
-//                   if (value != null) {
-//                     _profile = _profile.copyWith(secondLastName: value);
-//                   }
-//                 },
-//               ),
-//               ElevatedButton(
-//                 onPressed: _pickImage,
-//                 child: const Text('Seleccionar Foto'),
-//               ),
-//               if (_imageFile != null) ...[
-//                 const SizedBox(height: 16),
-//                 Image.file(_imageFile!, height: 150),
-//               ],
-//               TextFormField(
-//                 controller: _dateController,
-//                 decoration: InputDecoration(
-//                   labelText: 'Fecha de Nacimiento',
-//                   suffixIcon: IconButton(
-//                     icon: const Icon(Icons.calendar_today),
-//                     onPressed: () => _pickDate(context),
-//                   ),
-//                 ),
-//                 readOnly: true,
-//                 validator: (value) => value == null || value.isEmpty ? 'Seleccione una fecha' : null,
-//               ),
-//               const SizedBox(height: 16),
-//               DropdownButtonFormField<String>(
-//                 decoration: const InputDecoration(labelText: 'Estado Civil'),
-//                 items: const [
-//                   DropdownMenuItem(value: 'married', child: Text('Casado')),
-//                   DropdownMenuItem(value: 'divorced', child: Text('Divorciado')),
-//                   DropdownMenuItem(value: 'single', child: Text('Soltero')),
-//                 ],
-//                 onChanged: (value) {
-//                   if (value != null) {
-//                     setState(() {
-//                       _profile = _profile.copyWith(maritalStatus: value);
-//                     });
-//                   }
-//                 },
-//               ),
-//               const SizedBox(height: 16),
-//               DropdownButtonFormField<String>(
-//                 decoration: const InputDecoration(labelText: 'Sexo'),
-//                 items: const [
-//                   DropdownMenuItem(value: 'F', child: Text('Femenino')),
-//                   DropdownMenuItem(value: 'M', child: Text('Masculino')),
-//                 ],
-//                 onChanged: (value) {
-//                   if (value != null) {
-//                     setState(() {
-//                       _profile = _profile.copyWith(sex: value);
-//                     });
-//                   }
-//                 },
-//               ),
-//               const SizedBox(height: 24),
-//               ElevatedButton(
-//                 onPressed: _createProfile,
-//                 child: const Text('Crear Perfil'),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
