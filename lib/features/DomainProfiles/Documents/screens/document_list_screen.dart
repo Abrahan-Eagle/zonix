@@ -109,7 +109,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                             ],
                           ),
                           Text(
-                            'Doc. N.º: ${document.number ?? 'N/A'}',
+                            'Doc. N.º: ${document.numberCi ?? 'N/A'}',
                             style: TextStyle(color: textColor),
                           ),
                         ],

@@ -29,7 +29,7 @@ class DocumentDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailItem(context, 'Documento N.º: ${document.number ?? 'N/A'}', isHeader: true),
+                _buildDetailItem(context, 'Documento N.º: ${document.numberCi ?? 'N/A'}', isHeader: true),
                 _buildDetailItem(context, 'Tipo: ${translateDocumentType(document.type ?? 'Desconocido')}'),
                 _buildDetailItem(
                   context,
@@ -153,10 +153,10 @@ class DocumentDetailScreen extends StatelessWidget {
               Expanded(
                 child: _buildImageButton(context, document.frontImage, 'Foto Frontal', Icons.photo),
               ),
-              const SizedBox(width: 16), // Espaciado entre los botones
-              Expanded(
-                child: _buildImageButton(context, document.backImage, 'Foto Trasera', Icons.photo),
-              ),
+              // const SizedBox(width: 16), // Espaciado entre los botones
+              // Expanded(
+              //   child: _buildImageButton(context, document.backImage, 'Foto Trasera', Icons.photo),
+              // ),
             ],
           ),
         );

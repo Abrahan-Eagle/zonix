@@ -50,53 +50,65 @@ class CreateProfilePageState extends State<CreateProfilePage> {
     super.dispose();
   }
 
-  
-Future<String?> _compressImage(String filePath) async {
+  Future<String?> _compressImage(String filePath) async {
   try {
-    // Muestra el indicador de carga
+    // Mostrar el indicador de carga
+    bool isDialogOpen = true;
     showDialog(
       context: context,
       barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
       builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return const Center(child: CircularProgressIndicator());
       },
     );
 
     final imageFile = File(filePath);
 
-    // Si el tamaño de la imagen es menor o igual a 2MB, no se comprime
-    if (await imageFile.length() <= 2 * 1024 * 1024) return filePath;
+    // Verifica el tamaño de la imagen antes de decodificarla
+    final imageSize = await imageFile.length();
+    if (imageSize <= 2 * 1024 * 1024) {
+      Navigator.of(context).pop();
+      return filePath;
+    }
 
+    // Decodificar la imagen
     final originalImage = img.decodeImage(await imageFile.readAsBytes());
-    if (originalImage == null) return null;
+    if (originalImage == null) {
+      Navigator.of(context).pop();
+      return null; // Error al decodificar la imagen
+    }
 
     List<int> compressedBytes;
     String extension = filePath.split('.').last.toLowerCase();
     int quality = 85;
 
+    // Comprimir según el tipo de imagen
     if (extension == 'png') {
       compressedBytes = img.encodePng(originalImage, level: 6);
     } else {
       compressedBytes = img.encodeJpg(originalImage, quality: quality);
+      // Reducir la calidad si es necesario para que la imagen no sea mayor a 2MB
       while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
         quality -= 5;
         compressedBytes = img.encodeJpg(originalImage, quality: quality);
       }
     }
 
+    // Guardar la imagen comprimida en el sistema de archivos
     final compressedImageFile = await File(
       '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
     ).writeAsBytes(compressedBytes);
 
-    // Cierra el diálogo de carga
-    Navigator.of(context).pop();
+    // Cerrar el diálogo de carga
+    if (isDialogOpen) {
+      Navigator.of(context).pop();
+      isDialogOpen = false;
+    }
 
     return compressedImageFile.path;
   } catch (e) {
-    // Cierra el diálogo de carga en caso de error
-    Navigator.of(context).pop();
+    // En caso de error, cerrar el diálogo y manejar el error
+    Navigator.of(context).pop(); // Cerrar el diálogo si hay un error
     debugPrint("Error al comprimir la imagen: $e");
     return null;
   }
@@ -191,95 +203,98 @@ Future<String?> _compressImage(String filePath) async {
     }
   }
 
-
-
-Future<void> _pickDate(BuildContext context) async {
-  final picked = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(1900),
-    lastDate: DateTime.now(),
-  );
-
-  if (picked != null) {
-    // Formateamos la fecha para mostrarla en el formato 'dd-MM-yyyy'
-    String displayedDate = DateFormat('dd-MM-yyyy').format(picked);
-    _dateController.text = displayedDate; // Mostrar fecha en la interfaz
-
-    // Guardar la fecha en el formato 'yyyy-MM-dd' para la base de datos
-    String savedDate = DateFormat('yyyy-MM-dd').format(picked);
-
-    setState(() {
-      _profile = _profile.copyWith(dateOfBirth: savedDate); // Guardar en formato adecuado para la DB
-    });
-  }
-}
-
-Future<void> _createProfile() async {
-  if (_formKey.currentState!.validate()) {
-    _formKey.currentState!.save();
-
-    // Verificar si la imagen ha sido tomada
-    if (_imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Por favor, tome una foto.',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
-        ),
-      );
-      return; // No continuar si no hay imagen
-    }
-
-    try {
-      await ProfileService().createProfile(_profile, widget.userId, imageFile: _imageFile);
-      context.read<UserProvider>().setProfileCreated(true);
-
-      // Mostrar el SnackBar de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Fue registrado exitosamente.',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.fixed,
-          action: SnackBarAction(
-            label: 'OK', 
-            onPressed: () {},
-          ),
-        ),
-      );
-
-      // Verificar si el widget aún está montado
-  if (mounted) {
-    // Regresar a la pantalla de perfil (ProfilePage) reemplazando la pantalla actual
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => ProfilePagex(userId: widget.userId)), // Pasa el perfil a la página
+  Future<void> _pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
+
+    if (picked != null) {
+      // Formateamos la fecha para mostrarla en el formato 'dd-MM-yyyy'
+      String displayedDate = DateFormat('dd-MM-yyyy').format(picked);
+      _dateController.text = displayedDate; // Mostrar fecha en la interfaz
+
+      // Guardar la fecha en el formato 'yyyy-MM-dd' para la base de datos
+      String savedDate = DateFormat('yyyy-MM-dd').format(picked);
+
+      setState(() {
+        _profile = _profile.copyWith(
+          dateOfBirth: savedDate,
+        ); // Guardar en formato adecuado para la DB
+      });
+    }
   }
-    } catch (e) {
-      if (mounted) {
+
+  Future<void> _createProfile() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      // Verificar si la imagen ha sido tomada
+      if (_imageFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
-              'Error al crear perfil: $e',
-              style: const TextStyle(color: Colors.white),
+              'Por favor, tome una foto.',
+              style: TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.fixed,
+          ),
+        );
+        return; // No continuar si no hay imagen
+      }
+
+      try {
+        await ProfileService().createProfile(
+          _profile,
+          widget.userId,
+          imageFile: _imageFile,
+        );
+        context.read<UserProvider>().setProfileCreated(true);
+
+        // Mostrar el SnackBar de éxito
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Fue registrado exitosamente.',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
             behavior: SnackBarBehavior.fixed,
             action: SnackBarAction(label: 'OK', onPressed: () {}),
           ),
         );
+
+        // Verificar si el widget aún está montado
+        if (mounted) {
+          // Regresar a la pantalla de perfil (ProfilePage) reemplazando la pantalla actual
+           Navigator.of(context).pop();
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => ProfilePagex(userId: widget.userId),
+          //   ), // Pasa el perfil a la página
+          // );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error al crear perfil: $e',
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.fixed,
+              action: SnackBarAction(label: 'OK', onPressed: () {}),
+            ),
+          );
+        }
       }
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -291,31 +306,31 @@ Future<void> _createProfile() async {
           key: _formKey,
           child: Column(
             children: [
-
-
-if (_imageFile != null)
-  Card(
-    elevation: 4.0,  // Puedes ajustar la elevación de la card
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
-    ),
-    margin: const EdgeInsets.all(16.0), // Espaciado exterior
-    child: AspectRatio(
-      aspectRatio: 16 / 10,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10.0), // Asegura que las esquinas de la imagen coincidan
-        child: Image.file(
-          _imageFile!,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-      ),
-    ),
-  ),
-
+              if (_imageFile != null)
+                Card(
+                  elevation: 4.0, // Puedes ajustar la elevación de la card
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      10.0,
+                    ), // Radio de las esquinas
+                  ),
+                  margin: const EdgeInsets.all(16.0), // Espaciado exterior
+                  child: AspectRatio(
+                    aspectRatio: 16 / 10,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        10.0,
+                      ), // Asegura que las esquinas de la imagen coincidan
+                      child: Image.file(
+                        _imageFile!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
 
               const SizedBox(height: 16),
-
 
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Nombre'),
@@ -354,14 +369,16 @@ if (_imageFile != null)
                 },
               ),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Segundo Apellido'),
+                decoration: const InputDecoration(
+                  labelText: 'Segundo Apellido',
+                ),
                 onSaved: (value) {
                   if (value != null) {
                     _profile = _profile.copyWith(secondLastName: value);
                   }
                 },
               ),
-        
+
               TextFormField(
                 controller: _dateController,
                 decoration: InputDecoration(
@@ -372,18 +389,27 @@ if (_imageFile != null)
                   ),
                 ),
                 readOnly: true,
-                validator: (value) => value == null || value.isEmpty ? 'Seleccione una fecha' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Seleccione una fecha'
+                            : null,
               ),
-              
+
               const SizedBox(height: 16),
-             DropdownButtonFormField<String>(
+              DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Estado Civil'),
                 items: const [
                   DropdownMenuItem(value: 'married', child: Text('Casado')),
-                  DropdownMenuItem(value: 'divorced', child: Text('Divorciado')),
+                  DropdownMenuItem(
+                    value: 'divorced',
+                    child: Text('Divorciado'),
+                  ),
                   DropdownMenuItem(value: 'single', child: Text('Soltero')),
                 ],
-                validator: (value) => value == null ? 'Seleccione un estado civil' : null,
+                validator:
+                    (value) =>
+                        value == null ? 'Seleccione un estado civil' : null,
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -394,13 +420,14 @@ if (_imageFile != null)
               ),
 
               const SizedBox(height: 16),
-             DropdownButtonFormField<String>(
+              DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Sexo'),
                 items: const [
                   DropdownMenuItem(value: 'F', child: Text('Femenino')),
                   DropdownMenuItem(value: 'M', child: Text('Masculino')),
                 ],
-                validator: (value) => value == null ? 'Seleccione un sexo' : null,
+                validator:
+                    (value) => value == null ? 'Seleccione un sexo' : null,
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -411,62 +438,55 @@ if (_imageFile != null)
               ),
 
               const SizedBox(height: 24),
-              // ElevatedButton(
-              //   onPressed: _createProfile,
-              //   child: const Text('Crear Perfil'),
-              // ),
             ],
           ),
         ),
       ),
-    
-floatingActionButton: Stack(
-  children: [
-    // Botón para capturar foto
-    Positioned(
-      right: 10,
-      bottom: 85, // Separación del botón inferior
-      child: FloatingActionButton(
-        onPressed: _pickImage,
-        backgroundColor: Colors.blue, // Color distintivo
-        child: const Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children:  [
-            Icon(Icons.camera_alt, size: 20), // Ícono
-            Text(
-              'Foto',
-              style: TextStyle(fontSize: 10, color: Colors.white),
-            ), // Texto dentro del botón
-          ],
-        ),
-      ),
-    ),
-    // Botón para guardar perfil
-    Positioned(
-      right: 10,
-      bottom: 11, // Espaciado desde el borde inferior
-      child: FloatingActionButton(
-        onPressed: _createProfile,
-        backgroundColor: Colors.green, // Color distintivo
-        child: const Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children:  [
-            Icon(Icons.save, size: 20), // Ícono
-            Text(
-              'Guardar',
-              style: TextStyle(fontSize: 10, color: Colors.white),
-            ), // Texto dentro del botón
-          ],
-        ),
-      ),
-    ),
-  ],
-),
 
-
+      floatingActionButton: Stack(
+        children: [
+          // Botón para capturar foto
+          Positioned(
+            right: 10,
+            bottom: 85, // Separación del botón inferior
+            child: FloatingActionButton(
+              onPressed: _pickImage,
+              backgroundColor: Colors.blue, // Color distintivo
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera_alt, size: 20), // Ícono
+                  Text(
+                    'Foto',
+                    style: TextStyle(fontSize: 10, color: Colors.white),
+                  ), // Texto dentro del botón
+                ],
+              ),
+            ),
+          ),
+          // Botón para guardar perfil
+          Positioned(
+            right: 10,
+            bottom: 11, // Espaciado desde el borde inferior
+            child: FloatingActionButton(
+              onPressed: _createProfile,
+              backgroundColor: Colors.green, // Color distintivo
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.save, size: 20), // Ícono
+                  Text(
+                    'Guardar',
+                    style: TextStyle(fontSize: 10, color: Colors.white),
+                  ), // Texto dentro del botón
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-

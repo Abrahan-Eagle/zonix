@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Asegúrate de agregar esta dependencia en pubspec.yaml
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
@@ -6,6 +5,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart
 import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
 import 'package:logger/logger.dart';
+import 'package:intl/intl.dart';
 
 final logger = Logger();
 
@@ -19,7 +19,7 @@ class ProfileModel with ChangeNotifier {
   Future<void> loadProfile(int userId) async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       _profile = await ProfileService().getProfileById(userId);
     } catch (e) {
@@ -41,100 +41,136 @@ class ProfilePagex extends StatelessWidget {
 
   const ProfilePagex({super.key, required this.userId});
 
- @override
-Widget build(BuildContext context) {
-  return ChangeNotifierProvider(
-    create: (_) => ProfileModel()..loadProfile(userId),
-    child: Consumer<ProfileModel>(
-      builder: (context, profileModel, child) {
-        if (profileModel.isLoading) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Perfil')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // Si no hay perfil, redirige a la página de creación de perfil
-        if (profileModel.profile == null) {
-          Future.microtask(() {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => CreateProfilePage(userId: userId)),
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => ProfileModel()..loadProfile(userId),
+      child: Consumer<ProfileModel>(
+        builder: (context, profileModel, child) {
+          if (profileModel.isLoading) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Perfil')),
+              body: const Center(child: CircularProgressIndicator()),
             );
-          });
-          return const SizedBox(); // Retorna un widget vacío mientras se redirige
-        }
+          }
 
-        return Scaffold(
-          body: Column(
-            children: [
-              const Expanded(flex: 2, child: _TopPortion()), // Encabezado visual
-              Expanded(
-                flex: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(0.0),
-                  child: _buildProfileDetails(context, profileModel.profile!), 
+          // Si no hay perfil, redirige a la página de creación de perfil
+          if (profileModel.profile == null) {
+            Future.microtask(() {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateProfilePage(userId: userId),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
-    ),
-  );
-}
+              );
+            });
+            return const SizedBox(); // Retorna un widget vacío mientras se redirige
+          }
 
- String translateMaritalStatus(String status) {
-  switch (status) {
-    case 'single':
-      return 'Soltero';
-    case 'married':
-      return 'Casado';
-    case 'divorced':
-      return 'Divorciado';
-    default:
-      return 'N/A';
-  }
-}
-
-Widget _buildProfileDetails(BuildContext context, Profile profile) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _buildProfileField('Nombre', profile.firstName),
-      if (profile.middleName != null && profile.middleName!.isNotEmpty)
-        _buildProfileField('Segundo Nombre', profile.middleName!),
-      _buildProfileField('Apellido', profile.lastName),
-      if (profile.secondLastName != null && profile.secondLastName!.isNotEmpty)
-        _buildProfileField('Segundo Apellido', profile.secondLastName!),
-      _buildProfileField('Fecha de Nacimiento', profile.dateOfBirth ?? 'N/A'),
-      _buildProfileField('Estado Civil', translateMaritalStatus(profile.maritalStatus ?? 'N/A')),
-      _buildProfileField('Sexo', profile.sex),
-      const Spacer(),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          FloatingActionButton.extended(
-            onPressed: () => _navigateToEditOrCreatePage(context, profile),
-            label: const Text('Editar Perfil'),
-            icon: const Icon(Icons.edit),
-          ),
-        ],
+          return Scaffold(
+            body: Column(
+              children: [
+                const Expanded(
+                  flex: 2,
+                  child: _TopPortion(),
+                ), // Encabezado visual
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(0.0),
+                    child: _buildProfileDetails(context, profileModel.profile!),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
-      const Spacer(),
-    ],
-  );
-}
+    );
+  }
 
- 
+  String translateMaritalStatus(String status) {
+    switch (status) {
+      case 'single':
+        return 'Soltero';
+      case 'married':
+        return 'Casado';
+      case 'divorced':
+        return 'Divorciado';
+      default:
+        return 'N/A';
+    }
+  }
+
+  Widget _buildProfileDetails(BuildContext context, Profile profile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildProfileField('Nombre', profile.firstName),
+        if (profile.middleName != null && profile.middleName!.isNotEmpty)
+          _buildProfileField('Segundo Nombre', profile.middleName!),
+        _buildProfileField('Apellido', profile.lastName),
+        if (profile.secondLastName != null &&
+            profile.secondLastName!.isNotEmpty)
+          _buildProfileField('Segundo Apellido', profile.secondLastName!),
+        // _buildProfileField('Fecha de Nacimiento', profile.dateOfBirth ?? 'N/A'),
+        _buildProfileField(
+          'Fecha de Nacimiento',
+          _formatDate(profile.dateOfBirth), // Usamos la función que formatea la fecha
+        ),
+        _buildProfileField(
+          'Estado Civil',
+          translateMaritalStatus(profile.maritalStatus ?? 'N/A'),
+        ),
+        _buildProfileField('Sexo', profile.sex),
+        const Spacer(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FloatingActionButton.extended(
+              onPressed: () => _navigateToEditOrCreatePage(context, profile),
+              label: const Text('Editar Perfil'),
+              icon: const Icon(Icons.edit),
+            ),
+          ],
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+
+
+  // Función para formatear la fecha en 'dd-MM-yyyy'
+  String _formatDate(String? date) {
+    if (date == null || date.isEmpty) {
+      return 'N/A';  // Si no hay fecha, devuelve 'N/A'
+    }
+    
+    final DateFormat format = DateFormat('dd-MM-yyyy');  // El formato deseado
+    try {
+      final DateTime parsedDate = DateTime.parse(date);  // Convierte la fecha a DateTime
+      return format.format(parsedDate);  // Formatea la fecha
+    } catch (e) {
+      return 'N/A';  // En caso de error, devuelve 'N/A'
+    }
+  }
+
   void _navigateToEditOrCreatePage(BuildContext context, Profile profile) {
-    final route = profile == null
-        ? MaterialPageRoute(builder: (context) => CreateProfilePage(userId: profile.userId))
-        : MaterialPageRoute(builder: (context) => EditProfilePage(userId: profile.userId));
+    final route =
+        profile == null
+            ? MaterialPageRoute(
+              builder: (context) => CreateProfilePage(userId: profile.userId),
+            )
+            : MaterialPageRoute(
+              builder: (context) => EditProfilePage(userId: profile.userId),
+            );
 
     Navigator.push(context, route).then((_) {
       // Carga nuevamente el perfil después de editar o crear
-      Provider.of<ProfileModel>(context, listen: false).loadProfile(profile.userId);
+      Provider.of<ProfileModel>(
+        context,
+        listen: false,
+      ).loadProfile(profile.userId);
     });
   }
 
@@ -145,7 +181,9 @@ Widget _buildProfileDetails(BuildContext context, Profile profile) {
         children: [
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0), // Espacio lateral
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+              ), // Espacio lateral
               alignment: Alignment.centerLeft,
               child: Text(
                 '$etiqueta:',
@@ -158,7 +196,9 @@ Widget _buildProfileDetails(BuildContext context, Profile profile) {
           ),
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0), // Espacio lateral
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+              ), // Espacio lateral
               alignment: Alignment.centerRight,
               child: Text(
                 valor,
@@ -207,10 +247,7 @@ class _TopPortion extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 6,
-                    ),
+                    border: Border.all(color: Colors.white, width: 6),
                   ),
                   child: CircleAvatar(
                     backgroundColor: Colors.black,

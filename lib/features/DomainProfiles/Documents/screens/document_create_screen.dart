@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
 import 'package:zonix/features/DomainProfiles/Documents/widgets/mobile_scanner_xz.dart';
 import '../models/document.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart'; // Importar para usar FilteringTextInputFormatter
 import 'package:logger/logger.dart';
 import 'package:image/image.dart' as img; // Importar el paquete de imagen
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
 final logger = Logger();
-
 final documentService = DocumentService();
 class CreateDocumentScreen extends StatefulWidget {
   final int userId;
@@ -26,14 +25,25 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedType;
-  int? _number;
+  int? _numberCi;  
   String? _frontImage;
-  String? _backImage;
   String? _rifUrl;
   String? _taxDomicile;
+  int? _sky;
+  String? _communeRegister; // Campo específico para 'neighborhood_association'
+  String? _communityRif;
   DateTime? _issuedAt;
   DateTime? _expiresAt;
   int? _receiptN;
+
+  DocumentScanner? _documentScanner;
+  DocumentScanningResult? _result;
+
+  @override
+  void dispose() {
+    _documentScanner?.close();
+    super.dispose();
+  }
 
 
 
@@ -47,65 +57,74 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     if (picked != null) onDateSelected(picked);
   }
 
+ // Función para escanear un documento y luego obtener la imagen escaneada
+  Future<void> _scanDocument() async {
+    try {
+      setState(() {
+        _result = null;
+      });
 
-Future<void> _pickImage(ImageSource source, ValueSetter<String?> onImageSelected) async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: source);
-  
-  if (pickedFile != null) {
-    // Comprimir la imagen antes de guardarla
-    final compressedImage = await _compressImage(pickedFile.path);
-    
-    setState(() {
-      onImageSelected(compressedImage);
-    });
+      _documentScanner = DocumentScanner(
+        options: DocumentScannerOptions(
+          documentFormat: DocumentFormat.jpeg,
+          mode: ScannerMode.full,
+          isGalleryImport: false,
+          pageLimit: 1,
+        ),
+      );
+
+      _result = await _documentScanner?.scanDocument();
+      if (_result?.images.isNotEmpty == true) {
+        // Suponiendo que _result.images es una lista de File o algo que contiene la imagen escaneada
+        final scannedImage = _result!.images.first;
+        final compressedImage = await _compressImage(scannedImage); // Obtén el path de la imagen
+        setState(() {
+          _frontImage = compressedImage;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error al escanear el documento: $e");
+      _showCustomSnackBar(context, 'Error al escanear el documento', Colors.red);
+    }
   }
-}
-
-// Future<String?> _compressImage(String filePath) async {
-//   // Cargar la imagen
-//   final imageFile = File(filePath);
-//   final originalImage = img.decodeImage(await imageFile.readAsBytes());
-
-//   if (originalImage == null) return null;
-
-//   // Comprimir la imagen
-//   int quality = 85; // Establece un porcentaje de calidad
-//   List<int> compressedBytes = img.encodeJpg(originalImage, quality: quality);
-  
-//   // Guardar la imagen comprimida en un nuevo archivo temporal
-//   final compressedImageFile = await File('${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}').writeAsBytes(compressedBytes);
-
-//   return compressedImageFile.path; // Devuelve la ruta del archivo comprimido
-// }
 
 Future<String?> _compressImage(String filePath) async {
   try {
+    // Mostrar el diálogo de carga
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
     final imageFile = File(filePath);
 
-    // Verificar si la imagen ya es menor a 2 MB
+    // Verificar si la imagen ya es suficientemente pequeña (menor a 2 MB)
     if (await imageFile.length() <= 2 * 1024 * 1024) {
-      return filePath; // Devolver la misma imagen si no necesita compresión
+      Navigator.of(context).pop();  // Cerrar el diálogo de carga
+      return filePath;  // Devolver la imagen sin compresión si es menor a 2 MB
     }
 
+    // Decodificar la imagen
     final originalImage = img.decodeImage(await imageFile.readAsBytes());
     if (originalImage == null) {
-      debugPrint("No se pudo decodificar la imagen.");
-      return null; // Si no se puede decodificar, devuelve null
+      Navigator.of(context).pop();  // Cerrar el diálogo de carga
+      throw Exception("No se pudo decodificar la imagen.");
     }
 
     String extension = filePath.split('.').last.toLowerCase();
-    int quality = 85; // Calidad inicial
+    int quality = 85;
     List<int> compressedBytes;
 
+    // Comprimir la imagen según el tipo (PNG o JPG)
     if (extension == 'png') {
-      // Compresión para PNG
       compressedBytes = img.encodePng(originalImage, level: 6);
     } else {
-      // Compresión para JPG
       compressedBytes = img.encodeJpg(originalImage, quality: quality);
 
-      // Reducir calidad iterativamente si es mayor a 2 MB
+      // Intentar reducir la calidad si la imagen es mayor a 2 MB
       while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
         quality -= 5;
         compressedBytes = img.encodeJpg(originalImage, quality: quality);
@@ -118,108 +137,28 @@ Future<String?> _compressImage(String filePath) async {
     ).writeAsBytes(compressedBytes);
 
     debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
-    return compressedImageFile.path;
 
+    // Cerrar el diálogo de carga después de guardar la imagen
+    Navigator.of(context).pop();
+
+    return compressedImageFile.path;
   } catch (e) {
+    // Si hay un error, cerrar el diálogo y mostrar un mensaje en el log
     debugPrint("Error al comprimir la imagen: $e");
-    return null;
+    Navigator.of(context).pop();  // Cerrar el diálogo de carga
+    throw Exception("Error al comprimir la imagen: $e");
   }
 }
 
-// Future<String?> _compressImage(String filePath) async {
-//   try {
-//     final imageFile = File(filePath);
 
-//     // Verificar si la imagen ya es menor a 1.5  MG
-//     if (await imageFile.length() <= 1.5 * 1024 * 1024) {  // 1.5  MG
-//       return filePath; // Devolver la misma imagen si no necesita compresión
-//     }
-
-//     final originalImage = img.decodeImage(await imageFile.readAsBytes());
-//     if (originalImage == null) {
-//       debugPrint("No se pudo decodificar la imagen.");
-//       return null; // Si no se puede decodificar, devuelve null
-//     }
-
-//     String extension = filePath.split('.').last.toLowerCase();
-//     int quality = 85; // Calidad inicial
-//     List<int> compressedBytes;
-
-//     if (extension == 'png') {
-//       // Compresión para PNG
-//       compressedBytes = img.encodePng(originalImage, level: 6);
-//     } else {
-//       // Compresión para JPG
-//       compressedBytes = img.encodeJpg(originalImage, quality: quality);
-
-//       // Reducir calidad iterativamente hasta que el tamaño sea menor a 1.5  MG (o 100 KB si lo deseas)
-//       while (compressedBytes.length > 1.5 * 1024 * 1024 && quality > 10) {  // 1.5  MG
-//         quality -= 5;
-//         compressedBytes = img.encodeJpg(originalImage, quality: quality);
-//       }
-//     }
-
-//     // Guardar la imagen comprimida
-//     final compressedImageFile = await File(
-//       '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
-//     ).writeAsBytes(compressedBytes);
-
-//     debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
-//     return compressedImageFile.path;
-
-//   } catch (e) {
-//     debugPrint("Error al comprimir la imagen: $e");
-//     return null;
-//   }
-// }
-
-
-// Future<String?> _compressImage(String filePath) async {
-//   try {
-//     final imageFile = File(filePath);
-
-//     // Verificar si la imagen ya es menor a 1.5 MB (1.5 * 1024 * 1024 bytes)
-//     if (await imageFile.length() <= 1.5 * 1024 * 1024) {
-//       return filePath; // Devolver la misma imagen si no necesita compresión
-//     }
-
-//     final originalImage = img.decodeImage(await imageFile.readAsBytes());
-//     if (originalImage == null) {
-//       debugPrint("No se pudo decodificar la imagen.");
-//       return null; // Si no se puede decodificar, devuelve null
-//     }
-
-//     String extension = filePath.split('.').last.toLowerCase();
-//     int quality = 85; // Calidad inicial para JPG
-//     List<int> compressedBytes;
-
-//     if (extension == 'png') {
-//       // Compresión para PNG
-//       compressedBytes = img.encodePng(originalImage, level: 6);
-//     } else {
-//       // Compresión para JPG
-//       compressedBytes = img.encodeJpg(originalImage, quality: quality);
-
-//       // Reducir calidad iterativamente hasta que el tamaño sea menor a 1.5 MB
-//       while (compressedBytes.length > 1.5 * 1024 * 1024 && quality > 10) {
-//         quality -= 5;
-//         compressedBytes = img.encodeJpg(originalImage, quality: quality);
-//       }
-//     }
-
-//     // Crear una ruta para la imagen comprimida, evitando sobrescribir la original
-//     final compressedImageFile = await File(
-//       '${imageFile.parent.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.${extension}',
-//     ).writeAsBytes(compressedBytes);
-
-//     debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
-//     return compressedImageFile.path;
-
-//   } catch (e) {
-//     debugPrint("Error al comprimir la imagen: $e");
-//     return null;
-//   }
-// }
+ void _showCustomSnackBar(BuildContext context, String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color:  Colors.white)),
+        backgroundColor: backgroundColor,
+      ),
+    );
+  }
 
 
   @override
@@ -236,33 +175,86 @@ Future<String?> _compressImage(String filePath) async {
               const SizedBox(height: 16.0),
               if (_selectedType != null) _buildFieldsByType(),
               const SizedBox(height: 16.0),
-     
-              // ElevatedButton(
-              //   onPressed: _saveDocument,
-              //   child: const Text('Guardar Documento'),
-              // ),
+              if (_frontImage != null) ...[
+                const SizedBox(height: 16.0),
+                // Tarjeta para mostrar la imagen escaneada
+                Card(
+                  elevation: 4.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  margin: const EdgeInsets.all(16.0),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 10,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Image.file(
+                        File(_frontImage!),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                const Text('Imagen escaneada'),
+        Builder(
+            builder: (BuildContext context) {
+              // Show the SnackBar after rendering the widget tree
+              _showCustomSnackBar(context, 'Imagen escaneada', Colors.green);
+              return const SizedBox.shrink(); // Return a placeholder widget
+            },
+          ),
+              ],
             ],
           ),
         ),
       ),
-floatingActionButton: Column(
-  mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado por la columna
-  children: [
-    SizedBox(
-      width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
-      child: FloatingActionButton.extended(
-        onPressed: _saveDocument,
-        tooltip: 'Guardar Documento',
-        icon: const Icon(Icons.save),
-        label: const Text('Guardar Documento'),
+      floatingActionButton: Stack(
+        children: [
+          // Botón para escanear documento
+          Positioned(
+            right: 10,
+            bottom: 85,
+            child: FloatingActionButton(
+              onPressed: _scanDocument,
+              backgroundColor: Colors.orange,
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera, size: 20),
+                  Text(
+                    'Escanear',
+                    style: TextStyle(fontSize: 10, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Botón para guardar documento
+          Positioned(
+            right: 10,
+            bottom: 11,
+            child: FloatingActionButton(
+              onPressed: _saveDocument,
+              backgroundColor: Colors.green,
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.save, size: 20),
+                  Text(
+                    'Guardar',
+                    style: TextStyle(fontSize: 10, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
-    ),
-    const SizedBox(height: 16.0), // Espaciador
-  ],
-),
-floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -305,8 +297,8 @@ floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       children: [
         _buildNumberField(),
         const SizedBox(height: 16.0),
-        _buildImageRow('Imagen Frontal', 'Imagen Trasera'),
-        _showCapturedImages(), // Mostrar imágenes capturadas
+        //_buildImageRow('Imagen Frontal'),
+        // _showCapturedImages(), // Mostrar imágenes capturadas
         _buildCommonFields(),
       ],
     );
@@ -318,8 +310,8 @@ floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         _buildNumberField(),
         _buildReceiptNField(),
         const SizedBox(height: 16.0),
-        _buildImageRow('Imagen Frontal', 'Imagen Trasera'),
-        _showCapturedImages(),
+        //_buildImageRow('Imagen Frontal'),
+        // _showCapturedImages(),
         _buildCommonFields(),
       ],
     );
@@ -328,13 +320,13 @@ floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 Widget _buildRIFFields() {
   return Column(
     children: [
-      _buildNumberField(),
+      _buildSkyField(),
       _buildReceiptNField(),
       _buildQRScannerField(),  // Reemplaza el campo de URL RIF por el botón
       _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
       const SizedBox(height: 16.0),
-      _buildImageRow('Imagen Frontal', 'Imagen Trasera'),
-      _showCapturedImages(),
+      //_buildImageRow('Imagen Frontal'),
+      // _showCapturedImages(),
       _buildCommonFields(),
     ],
   );
@@ -344,11 +336,9 @@ Widget _buildRIFFields() {
   Widget _buildAssociationFields() {
     return Column(
       children: [
-        _buildReceiptNField(),
+        _buildTextField('Registro Comunal', (value) => _communeRegister = value),
+        _buildTextField('RIF Comunitario', (value) => _communityRif = value),
         _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
-        const SizedBox(height: 16.0),
-        _buildImageRow('Imagen Frontal', 'Imagen Trasera'),
-        _showCapturedImages(),
         _buildCommonFields(),
       ],
     );
@@ -392,62 +382,10 @@ Widget _buildRIFFields() {
     );
   }
 
-  Widget _showCapturedImages() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Alinea los elementos horizontalmente
-      children: [
-        if (_frontImage != null)
-          Column(
-            children: [
-              Image.file(File(_frontImage!), height: 150),
-              const Text('Frontal', style: TextStyle(fontSize: 12)), // Etiqueta para la imagen frontal
-            ],
-          ),
-        if (_backImage != null)
-          Column(
-            children: [
-              Image.file(File(_backImage!), height: 150),
-              const Text('Trasera', style: TextStyle(fontSize: 12)), // Etiqueta para la imagen trasera
-            ],
-          ),
-      ],
-    );
-  }
-
-  Widget _buildImageRow(String frontLabel, String backLabel) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Expanded(
-          child: _buildImagePicker(frontLabel, (value) => _frontImage = value),
-        ),
-        const SizedBox(width: 16.0),
-        Expanded(
-          child: _buildImagePicker(backLabel, (value) => _backImage = value),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImagePicker(String label, ValueSetter<String?> onSaved) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(100, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        backgroundColor: Colors.blueAccent[700],
-      ),
-      icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-      label: Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
-      onPressed: () => _pickImage(ImageSource.camera, onSaved),
-    );
-  }
-
   Widget _buildNumberField() {
     return _buildTextField(
-      'Número',
-      (value) => _number = int.tryParse(value ?? ''),
+      'N° Cedula',
+      (value) => _numberCi = int.tryParse(value ?? ''),
       inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Permitir solo dígitos
       keyboardType: TextInputType.number, // Teclado numérico
     );
@@ -457,6 +395,15 @@ Widget _buildRIFFields() {
     return _buildTextField(
       'N° Comprobante',
       (value) => _receiptN = int.tryParse(value ?? ''),
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Permitir solo dígitos
+      keyboardType: TextInputType.number, // Teclado numérico
+    );
+  }
+
+    Widget _buildSkyField() {
+    return _buildTextField(
+      'N° Sky',
+      (value) => _sky = int.tryParse(value ?? ''),
       inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Permitir solo dígitos
       keyboardType: TextInputType.number, // Teclado numérico
     );
@@ -526,12 +473,14 @@ Future<void> _saveDocument() async {
         Document document = Document(
           id: 0,
           type: _selectedType,
-          number: _number?.toString(),
+          numberCi: _numberCi?.toString(),
           receiptN: _receiptN,
           rifUrl: _rifUrl,
           taxDomicile: _taxDomicile,
+          sky: _sky,
+          communeRegister: _communeRegister,
+          communityRif: _communityRif,
           frontImage: _frontImage,
-          backImage: _backImage,
           issuedAt: _issuedAt,
           expiresAt: _expiresAt,
           approved: false,
@@ -542,40 +491,32 @@ Future<void> _saveDocument() async {
           document,
           widget.userId,
           frontImageFile: _getFileFromPath(document.frontImage),
-          backImageFile: _getFileFromPath(document.backImage),
         );
 
-        if (mounted) { // Verifica si el widget aún está montado
-          // Incrementa el contador después de cada guardado exitoso
-          setState(() {
-            _saveCounter++;
-          });
+
+          if (mounted) {
+            setState(() {
+              _saveCounter++;
+            });
 
           // Verifica si el contador ha alcanzado 3 después del incremento
           if (_saveCounter == 3) {
-            Provider.of<UserProvider>(context, listen: false).setDocumentCreated(true);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Límite alcanzado. Puedes avanzar al siguiente paso.')),
-            );
-            // Aquí podrías redirigir a otra pantalla o realizar otra acción adicional
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Documento guardado exitosamente')),
-            );
-          }
+              Provider.of<UserProvider>(context, listen: false).setDocumentCreated(true);
+              _showCustomSnackBar(context, 'Límite alcanzado. Puedes avanzar al siguiente paso.', Colors.blue);
+            } else {
+              _showCustomSnackBar(context, 'Documento guardado exitosamente', Colors.green);
+            }
 
           Navigator.of(context).pop();
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('La imagen frontal supera los 2 MB.')),
-        );
+       
+           _showCustomSnackBar(context, 'La imagen frontal supera los 2 MB.', Colors.orange);
+    
       }
     } catch (e) {
       logger.e('Error al guardar el documento: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar el documento: $e')),
-      );
+      _showCustomSnackBar(context, 'Error al guardar el documento: $e', Colors.red);
     }
   }
 }
