@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:image/image.dart' as img;
@@ -51,69 +50,68 @@ class CreateProfilePageState extends State<CreateProfilePage> {
   }
 
   Future<String?> _compressImage(String filePath) async {
-  try {
-    // Mostrar el indicador de carga
-    bool isDialogOpen = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
-      builder: (BuildContext context) {
-        return const Center(child: CircularProgressIndicator());
-      },
-    );
+    try {
+      // Mostrar el indicador de carga
+      bool isDialogOpen = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
+        builder: (BuildContext context) {
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
 
-    final imageFile = File(filePath);
+      final imageFile = File(filePath);
 
-    // Verifica el tamaño de la imagen antes de decodificarla
-    final imageSize = await imageFile.length();
-    if (imageSize <= 2 * 1024 * 1024) {
-      Navigator.of(context).pop();
-      return filePath;
-    }
-
-    // Decodificar la imagen
-    final originalImage = img.decodeImage(await imageFile.readAsBytes());
-    if (originalImage == null) {
-      Navigator.of(context).pop();
-      return null; // Error al decodificar la imagen
-    }
-
-    List<int> compressedBytes;
-    String extension = filePath.split('.').last.toLowerCase();
-    int quality = 85;
-
-    // Comprimir según el tipo de imagen
-    if (extension == 'png') {
-      compressedBytes = img.encodePng(originalImage, level: 6);
-    } else {
-      compressedBytes = img.encodeJpg(originalImage, quality: quality);
-      // Reducir la calidad si es necesario para que la imagen no sea mayor a 2MB
-      while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
-        quality -= 5;
-        compressedBytes = img.encodeJpg(originalImage, quality: quality);
+      // Verifica el tamaño de la imagen antes de decodificarla
+      final imageSize = await imageFile.length();
+      if (imageSize <= 2 * 1024 * 1024) {
+        Navigator.of(context).pop();
+        return filePath;
       }
+
+      // Decodificar la imagen
+      final originalImage = img.decodeImage(await imageFile.readAsBytes());
+      if (originalImage == null) {
+        Navigator.of(context).pop();
+        return null; // Error al decodificar la imagen
+      }
+
+      List<int> compressedBytes;
+      String extension = filePath.split('.').last.toLowerCase();
+      int quality = 85;
+
+      // Comprimir según el tipo de imagen
+      if (extension == 'png') {
+        compressedBytes = img.encodePng(originalImage, level: 6);
+      } else {
+        compressedBytes = img.encodeJpg(originalImage, quality: quality);
+        // Reducir la calidad si es necesario para que la imagen no sea mayor a 2MB
+        while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
+          quality -= 5;
+          compressedBytes = img.encodeJpg(originalImage, quality: quality);
+        }
+      }
+
+      // Guardar la imagen comprimida en el sistema de archivos
+      final compressedImageFile = await File(
+        '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
+      ).writeAsBytes(compressedBytes);
+
+      // Cerrar el diálogo de carga
+      if (isDialogOpen) {
+        Navigator.of(context).pop();
+        isDialogOpen = false;
+      }
+
+      return compressedImageFile.path;
+    } catch (e) {
+      // En caso de error, cerrar el diálogo y manejar el error
+      Navigator.of(context).pop(); // Cerrar el diálogo si hay un error
+      debugPrint("Error al comprimir la imagen: $e");
+      return null;
     }
-
-    // Guardar la imagen comprimida en el sistema de archivos
-    final compressedImageFile = await File(
-      '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
-    ).writeAsBytes(compressedBytes);
-
-    // Cerrar el diálogo de carga
-    if (isDialogOpen) {
-      Navigator.of(context).pop();
-      isDialogOpen = false;
-    }
-
-    return compressedImageFile.path;
-  } catch (e) {
-    // En caso de error, cerrar el diálogo y manejar el error
-    Navigator.of(context).pop(); // Cerrar el diálogo si hay un error
-    debugPrint("Error al comprimir la imagen: $e");
-    return null;
   }
-}
-
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
@@ -246,6 +244,16 @@ class CreateProfilePageState extends State<CreateProfilePage> {
         return; // No continuar si no hay imagen
       }
 
+      // Mostrar el indicador de progreso
+      showDialog(
+        context: context,
+        barrierDismissible:
+            false, // Evita que se cierre al tocar fuera del cuadro
+        builder: (BuildContext context) {
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
+
       try {
         await ProfileService().createProfile(
           _profile,
@@ -269,17 +277,12 @@ class CreateProfilePageState extends State<CreateProfilePage> {
 
         // Verificar si el widget aún está montado
         if (mounted) {
-          // Regresar a la pantalla de perfil (ProfilePage) reemplazando la pantalla actual
-           Navigator.of(context).pop();
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => ProfilePagex(userId: widget.userId),
-          //   ), // Pasa el perfil a la página
-          // );
+          Navigator.of(context).pop(); // Cerrar el indicador de progreso
+          Navigator.of(context).pop(); // Regresar a la pantalla anterior
         }
       } catch (e) {
         if (mounted) {
+          Navigator.of(context).pop(); // Cerrar el indicador de progreso
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
