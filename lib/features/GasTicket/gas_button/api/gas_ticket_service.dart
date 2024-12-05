@@ -57,9 +57,30 @@ Future<List<GasTicket>> fetchGasTickets(int userId) async {
       throw Exception('Failed to load gas cylinders');
     }
   }
+ Future<List<Map<String, dynamic>>> fetchStations() async {
+   String? token = await _getToken();
+   
+    final response = await http.get(
+      Uri.parse('$apiUrl/stations/getGasStations'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
 
+     if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load gas stations');
+    }
+
+  
+  }
+
+  
   // Crear un nuevo ticket con autenticación
-  Future<void> createGasTicket(int profileId, int cylinderId) async {
+  Future<void> createGasTicket(int profileId, int cylinderId, bool isExternal, int? selectedStationId) async {
     String? token = await _getToken();
 
     if (token == null) {
@@ -75,6 +96,8 @@ Future<List<GasTicket>> fetchGasTickets(int userId) async {
       body: jsonEncode({
         'profile_id': profileId,
         'gas_cylinders_id': cylinderId,
+        'is_external': isExternal,
+        'station_id': selectedStationId,
       }),
     );
 
@@ -83,4 +106,5 @@ Future<List<GasTicket>> fetchGasTickets(int userId) async {
           'Error al crear el ticket: ${response.statusCode} - ${response.body}');
     }
   }
+
 }
