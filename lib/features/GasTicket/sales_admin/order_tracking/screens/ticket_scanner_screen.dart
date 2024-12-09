@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:zonix/features/GasTicket/sales_admin_button/api/sales_admin_service.dart';  // Asegúrate de importar el archivo donde está ApiService
+import 'package:zonix/features/GasTicket/sales_admin/order_tracking/api/sales_admin_service.dart';  // Asegúrate de importar el archivo donde está ApiService
 
 class TicketScannerScreen extends StatefulWidget {
   const TicketScannerScreen({super.key});

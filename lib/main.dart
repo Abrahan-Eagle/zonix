@@ -18,7 +18,7 @@ import 'package:zonix/features/GasTicket/gas_button/screens/gas_ticket_list_scre
 // import 'dart:io';
 // import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:zonix/features/GasTicket/sales_admin_button/screens/ticket_scanner_screen.dart';
+import 'package:zonix/features/GasTicket/sales_admin/order_tracking/screens/ticket_scanner_screen.dart';
 import 'package:zonix/features/GasTicket/dispatch_ticket_button/screens/dispatch_ticket_scanner_screen.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -219,15 +219,12 @@ class MainRouterState extends State<MainRouter> {
 
     // Agregar elementos específicos según el rol si el nivel es 0
     if (level == 0) {
-      if (role == 'sales_admin') {
-        items.insert(
-          2,
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code),
-            label: 'Verificar',
-          ),
-        );
+      if (role == 'sales_admin') { 
+        items.insert( 2, const BottomNavigationBarItem( icon: Icon(Icons.qr_code), label: 'Verificar', ),);
+       
+        items.insert( 3, const BottomNavigationBarItem( icon: Icon(Icons.check_circle), label: 'Aprobar', ),);
       }
+
       if (role == 'dispatcher') {
         items.insert(
           2,
@@ -427,6 +424,7 @@ class MainRouterState extends State<MainRouter> {
                   if (_bottomNavIndex == 0) return const GasTicketListScreen();
                   if (_bottomNavIndex == 1) return const OtherScreen();
                   if (_bottomNavIndex == 2 && role == 'sales_admin') return const TicketScannerScreen();
+                  if (_bottomNavIndex == 3 && role == 'sales_admin') return const TicketScannerScreen();
                   if (_bottomNavIndex == 2 && role == 'dispatcher') return const DispatcherScreen();
                 }
 
