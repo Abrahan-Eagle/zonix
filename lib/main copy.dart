@@ -22,6 +22,7 @@ import 'package:zonix/features/GasTicket/sales_admin/order_tracking/screens/tick
 import 'package:zonix/features/GasTicket/dispatch_ticket_button/screens/dispatch_ticket_scanner_screen.dart';
 import 'package:zonix/features/GasTicket/sales_admin/data_verification/screens/check_scanner_screen.dart';
 
+
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
 
@@ -117,6 +118,12 @@ class MainRouterState extends State<MainRouter> {
     setState(() {
       _selectedLevel = prefs.getInt('selectedLevel') ?? 0;
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
+
+      // Verifica que el índice sea válido
+      if (_bottomNavIndex < 0 || _bottomNavIndex >= _getBottomNavItems(_selectedLevel, 'userRole').length) {
+        _bottomNavIndex = 0; // Establece a un valor válido por defecto
+      }
+
       logger.i(
         'Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex',
       );
@@ -242,23 +249,48 @@ class MainRouterState extends State<MainRouter> {
   }
 
   // Función para manejar el tap en el BottomNavigationBar
-  void _onBottomNavTapped(int index, int itemCount) {
-    logger.i('Bottom navigation tapped: $index, Total items: $itemCount');
+  // void _onBottomNavTapped(int index, int itemCount) {
+  //   logger.i('Bottom navigation tapped: $index, Total items: $itemCount');
 
-    // Verifica si el índice seleccionado es el último item
-    if (index == itemCount - 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SettingsPage2()),
-      );
-    } else {
-      setState(() {
-        _bottomNavIndex = index; // Actualiza el índice seleccionado
-        logger.i('Bottom nav index changed to: $_bottomNavIndex');
-        _saveLastPosition();
-      });
-    }
+  //   // Verifica si el índice seleccionado es el último item
+  //   if (index == itemCount - 1) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => const SettingsPage2()),
+  //     );
+  //   } else {
+  //     setState(() {
+  //       _bottomNavIndex = index; // Actualiza el índice seleccionado
+  //       logger.i('Bottom nav index changed to: $_bottomNavIndex');
+  //       _saveLastPosition();
+  //     });
+  //   }
+  // }
+
+  void _onBottomNavTapped(int index, int itemCount) {
+  logger.i('Bottom navigation tapped: $index, Total items: $itemCount');
+
+  // Asegúrate de que el índice esté dentro del rango válido
+  if (index < 0 || index >= itemCount) {
+    logger.e('Índice fuera de rango: $index');
+    return; // Si el índice está fuera de rango, no hacemos nada
   }
+
+  // Verifica si el índice seleccionado es el último item
+  if (index == itemCount - 1) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsPage2()),
+    );
+  } else {
+    setState(() {
+      _bottomNavIndex = index; // Actualiza el índice seleccionado
+      logger.i('Bottom nav index changed to: $_bottomNavIndex');
+      _saveLastPosition();
+    });
+  }
+}
+
 
   // Dentro de tu widget donde tienes el BottomNavigationBar
 
@@ -425,7 +457,9 @@ class MainRouterState extends State<MainRouter> {
                   if (_bottomNavIndex == 0) return const GasTicketListScreen();
                   if (_bottomNavIndex == 1) return const OtherScreen();
                   if (_bottomNavIndex == 2 && role == 'sales_admin') return const TicketScannerScreen();
+                  
                   if (_bottomNavIndex == 3 && role == 'sales_admin') return const CheckScannerScreen();
+
                   if (_bottomNavIndex == 2 && role == 'dispatcher') return const DispatcherScreen();
                 }
 
@@ -479,7 +513,11 @@ class MainRouterState extends State<MainRouter> {
 
       bottomNavigationBar: BottomNavigationBar(
         items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
-        currentIndex: _bottomNavIndex,
+        // currentIndex: _bottomNavIndex,
+         currentIndex: (_bottomNavIndex >= 0 &&
+          _bottomNavIndex < _getBottomNavItems(_selectedLevel, userProvider.userRole).length)
+          ? _bottomNavIndex 
+          : 0, // Si el índice está fuera de rango, vuelve al 0
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         onTap: (index) {

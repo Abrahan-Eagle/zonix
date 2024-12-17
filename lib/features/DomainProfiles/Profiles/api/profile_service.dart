@@ -3,10 +3,14 @@ import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 // import 'package:zonix/features/DomainProfiles/Profiles/utils/constants.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+
+
 
 
 final logger = Logger();
@@ -148,4 +152,63 @@ Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async
       rethrow;
     }
   }
+
+
+
+
+
+
+Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
+  String? token = await _getToken();
+  if (token == null) {
+    logger.e('Token no encontrado');
+    throw ApiException('Token no encontrado. Por favor, inicia sesión.'); // Aquí lanzamos ApiException
+  }
+
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/profiles'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'selectedOptionId': selectedOptionId,
+      }), // Aquí se envía el selectedOptionId
+    ).timeout(const Duration(seconds: 10));
+
+
+    if (response.statusCode != 200) {
+      throw ApiException('Error al actualizar el estado: ${response.body}');
+    }
+  } catch (e) {
+    logger.e('Error al actualizar el estado: $e');
+    throw ApiException('Error al actualizar el estado: ${e.toString()}');
+  }
+}
+
+
+Future<List<Map<String, dynamic>>> fetchStations() async {
+  final String apiUrl = '$baseUrl/api/tickets';
+   String? token = await _getToken();
+   
+    final response = await http.get(
+      Uri.parse('$apiUrl/stations/getGasStations'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+     if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load gas stations');
+    }
+
+  
+  }
+
+
 }

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/DomainProfiles/Emails/models/email.dart';
 
 final logger = Logger();
@@ -85,4 +86,46 @@ Future<void> updateEmail(int id, Email email) async {
       throw Exception('Error al eliminar correo: ${response.body}');
     }
   }
+
+
+
+
+
+
+
+
+Future<void> updateStatusCheckScanner(int userId) async {
+  String? token = await _getToken();
+    if (token == null) {
+      logger.e('Token no encontrado');
+      throw Exception('Token no encontrado. Por favor, inicia sesión.');
+    }
+
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/emails'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      // Si necesitas enviar un cuerpo, puedes descomentar lo siguiente:
+      // body: json.encode({'user_id': userId}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw ApiException('Error al actualizar el estado: ${response.body}');
+    }
+  }catch (e) {
+    // Logger.e('Error al actualizar el estado: $e');
+    throw ApiException('Error al actualizar el estado: ${e.toString()}');
+  }
+}
+
+
+
+
+
+
+
+
 }

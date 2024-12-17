@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:zonix/features/GasTicket/sales_admin/data_verification/api/check_service.dart';  // Asegúrate de importar el archivo donde está ApiService
+import 'package:zonix/features/GasTicket/sales_admin/data_verification/api/check_service.dart';
+import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
+import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
+import 'package:logger/logger.dart'; // Librería Logger para depuración
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckScannerScreen extends StatefulWidget {
   const CheckScannerScreen({super.key});
@@ -11,152 +19,218 @@ class CheckScannerScreen extends StatefulWidget {
 
 class CheckScannerScreenState extends State<CheckScannerScreen> {
   late ApiService apiService;
-  String scannedData = '';  // Para almacenar los datos escaneados
-  Map<String, dynamic>? checkData;  // Datos del check escaneado
+  final logger = Logger(); // Instancia de logger para depuración
+  String scannedData = ''; // Datos escaneados
+  Map<String, dynamic>? checkData; // Datos del backend
+  bool isProcessing = false; // Para evitar procesos simultáneos
+  bool isScanActive = true; // Estado para controlar si el QR está activo o no
+  final GlobalKey qrKey = GlobalKey(); // Clave para reiniciar el MobileScanner
 
   @override
   void initState() {
     super.initState();
-    apiService = ApiService();  // Inicializa la instancia de ApiService
+    apiService = ApiService();
+    _loadScannedData(); // Cargar el scannedData almacenado previamente
   }
 
-  // Función que se llama cuando se escanea un código QR
-  void _onScan(Barcode barcode) async {
+  // Cargar el scannedData desde el almacenamiento local
+  _loadScannedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      scannedData = barcode.rawValue ?? 'Unknown';  // Accediendo al rawValue del Barcode
+      scannedData = prefs.getString('scannedData') ?? ''; // Cargar el valor
+    });
+  }
+
+  // Guardar el scannedData en el almacenamiento local
+  _saveScannedData(String data) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('scannedData', data);
+  }
+
+  // Detener el escáner al salir de la pantalla
+  @override
+  void dispose() {
+    isScanActive = false;
+    super.dispose();
+  }
+
+  void _onScan(Barcode barcode) async {
+    if (!isScanActive) return; // Evitar escaneos simultáneos si no está activo
+
+    final String? rawValue = barcode.rawValue;
+    logger.i('Código QR detectado: $rawValue'); // Log del código detectado
+
+    if (rawValue == null) {
+      _showMessage('Error: Código QR inválido.');
+      return;
+    }
+
+    // Almacenar el scannedData en el almacenamiento local
+    await _saveScannedData(rawValue);
+
+    setState(() {
+      scannedData = rawValue;
+      isScanActive = false; // Desactivar el QR mientras se procesa
     });
 
-    // Verifica el check con el ID escaneado
+    // Enviar el valor a la API
+    await _verifyData();
+  }
+
+  Future<void> _verifyData() async {
+    if (scannedData.isEmpty) {
+      _showMessage('Error: No scanned data available.');
+      return;
+    }
+
     try {
+      // Llamar a la API para verificar el scannedData
+      logger.i('Enviando scannedData a la API: $scannedData');
       var result = await apiService.verifyCheck(int.parse(scannedData));
+
+      // Revisar la respuesta de la API
+      logger.i('Respuesta del backend: $result');
       setState(() {
-        checkData = result['data'];  // Guardamos la data del check
+        checkData = result;
       });
+
+      if (checkData != null && checkData!.containsKey('status')) {
+        // Si el status es success
+        if (checkData!['status'] == 'success') {
+          await _redirectToModule(checkData!['data']); // Redirigir al módulo correspondiente
+        } else {
+          // Si el status es error, reactiva el escáner QR
+          setState(() {
+            isScanActive = true;
+          });
+          _showMessage('Error: ${checkData!['message']}');
+        }
+      }
     } catch (e) {
-      _showMessage('Error al verificar el check');
+      logger.e('Error al procesar el código QR: $e');
+      _showMessage('Error: ${e.toString()}');
+      setState(() {
+        isScanActive = true; // Reactivar el escáner en caso de error
+      });
     }
   }
 
-  // Función para mostrar un mensaje
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // Función para manejar la opción de pago (marcar como esperando)
-  void _markAsWaiting() async {
-    if (checkData != null) {
-      try {
-        var result = await apiService.markAsWaiting(checkData!['id']);
-        _showMessage(result['message']);
-        setState(() {
-          checkData = null; // Limpiamos la información del check
-        });
-      } catch (e) {
-        _showMessage('Error al marcar como esperando');
-      }
+  Future<void> _redirectToModule(String dataKey) async {
+    final userId = int.parse(scannedData);
+    const statusId = true;  // Definir statusId como true
+
+    logger.i('Redirigiendo al módulo correspondiente: $dataKey');
+
+    // Detener el escáner antes de navegar
+    setState(() {
+      isScanActive = false;
+    });
+
+    switch (dataKey) {
+      case 'profile':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePagex(userId: userId, statusId: statusId)),
+        ).then((_) => _checkStatusOnBack());
+        break;
+      case 'addresses':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AddressPage(userId: userId, statusId: statusId)),
+        ).then((_) => _checkStatusOnBack());
+        break;
+      case 'gasCylinders':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => GasCylinderListScreen(userId: userId, statusId: statusId)),
+        ).then((_) => _checkStatusOnBack());
+        break;
+      case 'documents':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => DocumentListScreen(userId: userId, statusId: statusId)),
+        ).then((_) => _checkStatusOnBack());
+        break;
+      case 'phones':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PhoneScreen(userId: userId, statusId: statusId)),
+        ).then((_) => _checkStatusOnBack());
+        break;
+      case 'emails':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => EmailListScreen(userId: userId, statusId: statusId)),
+        ).then((_) => _checkStatusOnBack());
+        break;
+      default:
+        logger.w('Módulo desconocido para la clave de datos: $dataKey');
+        _showMessage('Unknown data key.');
+        _checkStatusOnBack(); // Restablecer incluso en caso de error
     }
   }
 
-  // Función para manejar la opción de cancelar el check
-  void _cancelCheck() async {
-    if (checkData != null) {
-      try {
-        var result = await apiService.cancelCheck(checkData!['id']);
-        _showMessage(result['message']);
-        setState(() {
-          checkData = null; // Limpiamos la información del check
-        });
-      } catch (e) {
-        _showMessage('Error al cancelar el check');
-      }
+  Future<void> _checkStatusOnBack() async {
+    // Verificar nuevamente el status después de regresar del módulo
+    if (checkData != null && checkData!['status'] == 'success') {
+      // Volver a enviar el scannedData
+      await _verifyData();
+    } else {
+      // Limpiar la cache y reactivar el escáner si el status es error
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.remove('scannedData'); // Limpiar el scannedData
+       _resetScanner();// en prueba
+      setState(() {
+        isScanActive = true; // Reactivar el escáner
+      });
     }
+  }
+
+  void _resetScanner() {
+    setState(() {
+      isScanActive = true; // Reactivar el escaneo
+      scannedData = ''; // Limpiar datos escaneados
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el tamaño de la pantalla
+    double screenWidth = MediaQuery.of(context).size.width;
+    // double screenHeight = MediaQuery.of(context).size.height;
+
+    // Calcular el tamaño del cuadro central según la pantalla
+    double boxSize = screenWidth * 0.6; // 60% del ancho de la pantalla
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Escanear Check'),
-      ),
+      // appBar: AppBar(title: const Text('Escanear Check')),
       body: Stack(
         children: [
-          // Zona de escaneo de la cámara
-          MobileScanner(
-            onDetect: (BarcodeCapture barcodeCapture) {
-              // Accediendo al primer código detectado
-              if (barcodeCapture.barcodes.isNotEmpty) {
-                final Barcode barcode = barcodeCapture.barcodes.first;
-                _onScan(barcode);  // Llamamos a la función de escaneo con el código detectado
-              }
-            },
-          ),
-
-          // Zona de escaneo en el medio de la cámara
+          if (isScanActive)
+            MobileScanner(
+              key: qrKey, // Usa la clave para reiniciar
+              onDetect: (barcodeCapture) {
+                if (barcodeCapture.barcodes.isNotEmpty) {
+                  _onScan(barcodeCapture.barcodes.first);
+                }
+              },
+            ),
           Center(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 50.0), // Ajusta los márgenes para centrar el contenedor
-              width: 200,
-              height: 200,
+              margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.1), // 10% de los márgenes
+              width: boxSize,
+              height: boxSize,
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.green,
-                  width: 2,
-                ),
+                border: Border.all(color: Colors.green, width: 2),
               ),
             ),
           ),
-
-          // Capa de borde verde (opcional para visualización adicional)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.green.withOpacity(0.7)),  // Aumenta la opacidad para una mejor visualización
-              ),
-            ),
-          ),
-
-          // Capa de la información del check (cuando se escanea un código válido)
-          checkData != null
-              ? Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('ID del check: ${checkData!['id']}'),
-                        const SizedBox(height: 10),
-                        Text('Usuario: ${checkData!['profile']['user']['name']}'),
-                        const SizedBox(height: 10),
-                        Text('Estado: ${checkData!['status']}'),
-                        const SizedBox(height: 20),
-                        Text('Fecha de Reserva: ${checkData!['reserved_date']}'),
-                        const SizedBox(height: 10),
-                        Text('Fecha de Cita: ${checkData!['appointment_date']}'),
-                        const SizedBox(height: 10),
-                        Text('Fecha de Expiración: ${checkData!['expiry_date']}'),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton(
-                              onPressed: _markAsWaiting,
-                              child: const Text('Aprobar'),
-                            ),
-                            const SizedBox(width: 20),
-                            ElevatedButton(
-                              onPressed: _cancelCheck,
-                              child: const Text('Cancelar'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : const SizedBox(),
         ],
       ),
     );

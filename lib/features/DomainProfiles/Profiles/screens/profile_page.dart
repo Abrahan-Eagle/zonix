@@ -4,6 +4,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart'
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/select_station_modal.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 
@@ -38,8 +39,9 @@ class ProfileModel with ChangeNotifier {
 
 class ProfilePagex extends StatelessWidget {
   final int userId;
+  final bool statusId;
 
-  const ProfilePagex({super.key, required this.userId});
+  const ProfilePagex({super.key, required this.userId, this.statusId = false});
 
   @override
   Widget build(BuildContext context) {
@@ -67,27 +69,57 @@ class ProfilePagex extends StatelessWidget {
             return const SizedBox(); // Retorna un widget vacío mientras se redirige
           }
 
-          return Scaffold(
-            body: Column(
-              children: [
-                const Expanded(
-                  flex: 2,
-                  child: _TopPortion(),
-                ), // Encabezado visual
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.all(0.0),
-                    child: _buildProfileDetails(context, profileModel.profile!),
-                  ),
+        
+              return Scaffold(
+                body: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        const Expanded(
+                          flex: 2,
+                          child: _TopPortion(),
+                        ), // Encabezado visual
+                        Expanded(
+                          flex: 3,
+                          child: Padding(
+                            padding: const EdgeInsets.all(0.0),
+                            child: _buildProfileDetails(context, profileModel.profile!),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (statusId)
+                      Positioned(
+                        right: 10,
+                        top: 215, // Ajusta esta posición según sea necesario
+                        child: FloatingActionButton(
+                          onPressed: () async {
+                            // Mostrar modal con select
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return SelectStationModal(userId: userId);
+                              },
+                            );
+                          },
+                          backgroundColor: Colors.green,
+                          child: const Icon(Icons.check),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
-            ),
-          );
+              );
+
+
+
+
         },
       ),
     );
   }
+
+
+  
 
   String translateMaritalStatus(String status) {
     switch (status) {

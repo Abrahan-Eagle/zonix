@@ -2,30 +2,75 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:logger/logger.dart';
+
 final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+    ? dotenv.env['API_URL_PROD']!
+    : dotenv.env['API_URL_LOCAL']!;
 
 class ApiService {
-   final String apiUrl = '$baseUrl/api/sales-admin/checks';
-  final storage = const FlutterSecureStorage(); // Instancia de almacenamiento seguro
+  final String apiUrl = '$baseUrl/api/data-verification';
+  final storage = const FlutterSecureStorage();
+  final logger = Logger();
 
-  // Método para recuperar el token almacenado
   Future<String?> _getToken() async {
-    return await storage.read(key: 'token');
+    try {
+      return await storage.read(key: 'token');
+    } catch (e) {
+      logger.e('Error al recuperar el token: $e');
+      throw Exception('Error al recuperar el token: $e');
+    }
   }
 
-
-  // Verificar check
-  Future<Map<String, dynamic>> verifyCheck(int id) async {
+  Future<Map<String, dynamic>> verifyCheck(int profileId) async {
     String? token = await _getToken();
-
     if (token == null) {
+      logger.e('Token no encontrado');
       throw Exception('Token no encontrado. Por favor, inicia sesión.');
     }
 
-    final response = await http.post(
-      Uri.parse('$apiUrl/$id/verify'),
+    final uri = Uri.parse('$apiUrl/$profileId');
+    logger.i('Enviando solicitud GET a $uri con token: $token');
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      logger.i('Respuesta recibida: ${response.statusCode}, Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 400) {
+        logger.w('Solicitud inválida: ${response.body}');
+        throw Exception('Solicitud inválida: ${response.body}');
+      } else if (response.statusCode == 404) {
+        logger.w('Este usuario ya tiene todos sus datos actualizados. No hay información adicional para procesar.');
+        throw Exception('Este usuario ya tiene todos sus datos actualizados. No hay información adicional para procesar.');
+      } else if (response.statusCode >= 500) {
+        logger.e('Error en el servidor: ${response.statusCode} - ${response.reasonPhrase}');
+        throw Exception('Error en el servidor: ${response.statusCode} - ${response.reasonPhrase}');
+      } else {
+        logger.e('Error inesperado: ${response.statusCode}');
+        throw Exception('Error inesperado: ${response.statusCode}');
+      }
+    } catch (e) {
+      logger.e('Error de conexión: $e');
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+
+
+Future<List<Map<String, dynamic>>> fetchStations(int userId) async {
+   String? token = await _getToken();
+   
+    final response = await http.get(
+      Uri.parse('$apiUrl/getGasCylinders/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -33,57 +78,13 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
     } else {
-      throw Exception('Failed to verify check');
+      throw Exception('Failed to load gas cylinders');
     }
   }
 
-  // Marcar check como esperando
-  Future<Map<String, dynamic>> markAsWaiting(int id) async {
 
-    String? token = await _getToken();
 
-    if (token == null) {
-      throw Exception('Token no encontrado. Por favor, inicia sesión.');
-    }
-
-    final response = await http.post(
-      Uri.parse('$apiUrl/$id/waiting'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to mark check as waiting');
-    }
-  }
-
-  // Cancelar check
-  Future<Map<String, dynamic>> cancelCheck(int id) async {
-
-    String? token = await _getToken();
-
-    if (token == null) {
-      throw Exception('Token no encontrado. Por favor, inicia sesión.');
-    }
-
-    final response = await http.post(
-      Uri.parse('$apiUrl/$id/cancel'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', 
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to cancel check');
-    }
-  }
 }

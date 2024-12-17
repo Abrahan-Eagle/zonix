@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -117,4 +118,40 @@ Future<List<Map<String, dynamic>>> getGasSuppliers() async {
       rethrow;
     }
   }
+
+
+
+
+
+Future<void> updateStatusCheckScanner(int userId) async {
+  String? token = await _getToken();
+    if (token == null) {
+      logger.e('Token no encontrado');
+      throw Exception('Token no encontrado. Por favor, inicia sesión.');
+    }
+
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/gas-cylinders'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      // Si necesitas enviar un cuerpo, puedes descomentar lo siguiente:
+      // body: json.encode({'user_id': userId}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw ApiException('Error al actualizar el estado: ${response.body}');
+    }
+  }catch (e) {
+    logger.e('Error al actualizar el estado: $e');
+    throw ApiException('Error al actualizar el estado: ${e.toString()}');
+  }
+}
+
+
+
+
+
 }

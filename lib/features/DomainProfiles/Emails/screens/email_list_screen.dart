@@ -5,8 +5,9 @@ import '../screens/create_email_screen.dart';
 
 class EmailListScreen extends StatefulWidget {
   final int userId;
+  final bool statusId;
 
-  const EmailListScreen({super.key, required this.userId});
+  const EmailListScreen({super.key, required this.userId, this.statusId = false});
 
   @override
   EmailListScreenState createState() => EmailListScreenState();
@@ -66,10 +67,114 @@ class EmailListScreenState extends State<EmailListScreen> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToCreateEmail, // Acción al presionar el FAB
-        child: const Icon(Icons.add),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _navigateToCreateEmail, // Acción al presionar el FAB
+      //   child: const Icon(Icons.add),
+      // ),
+
+
+
+
+
+
+
+
+
+floatingActionButton: Stack(
+        children: [
+          // El botón de creación de documentos
+          Positioned(
+            right: 10,
+            bottom: 20,
+            child: FloatingActionButton(
+              onPressed: _navigateToCreateEmail,
+              child: const Icon(Icons.add),
+            ),
+          ),
+          // El botón de confirmación solo si statusId es true
+          if (widget.statusId)
+            Positioned(
+              right: 10,
+              bottom: 85,
+              child: FloatingActionButton(
+                onPressed: () async {
+                  // Mostrar el popup de confirmación antes de realizar la acción
+                  bool? isConfirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Confirmar acción'),
+                        content: const Text('¿Quieres aprobar esta solicitud?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false);  // Retorna 'No'
+                            },
+                            child: const Text('No'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(true);  // Retorna 'Sí'
+                            },
+                            child: const Text('Sí'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  // Si el usuario confirma la acción, proceder con la lógica
+                  if (isConfirmed == true) {
+                    try {
+                      // Llamar a la función updateStatusCheckScanner desde ApiServices
+                      await EmailService().updateStatusCheckScanner(widget.userId);
+
+                      // Mostrar SnackBar de éxito
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Estado actualizado'),
+                          backgroundColor: Colors.green,  // Color de fondo para éxito
+                          behavior: SnackBarBehavior.floating,
+                          action: SnackBarAction(
+                            label: 'Cerrar',
+                            textColor: Colors.white,
+                            onPressed: () {},
+                          ),
+                        ),
+                      );
+
+                      // Retroceder después de la confirmación y acción exitosa
+                      Navigator.of(context).pop();  // Retrocede a la pantalla anterior
+
+                    } catch (e) {
+                      // Mostrar SnackBar de error
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: ${e.toString()}'),
+                          backgroundColor: Colors.red,  // Color de fondo para error
+                          behavior: SnackBarBehavior.floating,
+                          action: SnackBarAction(
+                            label: 'Cerrar',
+                            textColor: Colors.white,
+                            onPressed: () {},
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+                backgroundColor: Colors.green,
+                child: const Icon(Icons.check),
+              ),
+            ),
+        ],
       ),
+
+
+
+
+
+
     );
   }
 

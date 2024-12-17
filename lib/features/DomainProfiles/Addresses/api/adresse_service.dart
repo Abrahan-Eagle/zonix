@@ -171,4 +171,34 @@ Future<List<StateModel>> fetchStates(int countryId) async {
       throw ApiException('Error en la solicitud: ${response.statusCode} ${response.body}');
     }
   }
+
+
+
+
+Future<void> updateStatusCheckScanner(int userId) async {
+  String? token = await _getToken();
+    if (token == null) {
+      logger.e('Token no encontrado');
+      throw Exception('Token no encontrado. Por favor, inicia sesión.');
+    }
+
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/addresses'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      // Si necesitas enviar un cuerpo, puedes descomentar lo siguiente:
+      // body: json.encode({'user_id': userId}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw ApiException('Error al actualizar el estado: ${response.body}');
+    }
+  }catch (e) {
+    logger.e('Error al actualizar el estado: $e');
+    throw ApiException('Error al actualizar el estado: ${e.toString()}');
+  }
+}
 }
