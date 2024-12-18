@@ -8,7 +8,7 @@ import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:zonix/features/screens/onboarding/pages_onboardingx/onboarding_screen.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -201,23 +201,16 @@ class SignInScreenState extends State<SignInScreen> {
 
         const SizedBox(height: 24),
 
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
-        //   child: Image.asset(
-        //     'assets/onboarding/scooter.png', // Ruta de la imagen local
-        //     fit: BoxFit.cover,
-        //   ),
-        // ),
-
-
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20.0), // Margen izquierdo y derecho
-          child: SvgPicture.asset(
-            'assets/images/undraw_launching_szjw.svg', // Ruta de la imagen SVG
+          child: Image.asset(
+            'assets/images/undraw_launching_szjw.png', // Ruta de la imagen local
             fit: BoxFit.cover,
           ),
         ),
 
+
+      
         const Spacer(),
 
         Container(
