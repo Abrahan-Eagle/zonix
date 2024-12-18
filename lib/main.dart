@@ -358,18 +358,21 @@ class MainRouterState extends State<MainRouter> {
                       PopupMenuItem(
                         child: const Text('Cerrar sesión'),
                         onTap: () async {
-                          await _storage.deleteAll();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignInScreen(),
-                            ),
+                          await userProvider.logout();
+                          // await _storage.deleteAll();
+                          if (!mounted) return;
+                        
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const SignInScreen()), // Redirige al login
+                            (Route<dynamic> route) => false, // Elimina todas las rutas previas
                           );
-                        },
+
+                       },
                       ),
                     ],
                   );
                 },
+
                 child: FutureBuilder<String?>(
                   future: _storage.read(key: 'userPhotoUrl'),
                   builder: (

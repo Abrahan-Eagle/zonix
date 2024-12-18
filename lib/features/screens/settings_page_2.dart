@@ -210,10 +210,12 @@ Widget _buildHelpAndLogoutSection(UserProvider userProvider) {
         onTap: () async {
           await userProvider.logout();
           if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const SignInScreen()), // Redirige al login
+            (Route<dynamic> route) => false, // Elimina todas las rutas previas
           );
+
         },
       ),
     ],
