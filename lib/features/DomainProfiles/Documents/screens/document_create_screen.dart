@@ -309,16 +309,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                 ),
               )
               .toList(),
-  //     onChanged: (value) => setState(() => _selectedType = value),
-  //     decoration: const InputDecoration(labelText: 'Tipo de Documento'),
-  //     validator: (value) => value == null ? 'Seleccione un tipo' : null,
-  //   );
-  // }
-
-    // onChanged: (value) => setState(() {
-    //   _selectedType = value;
-    //   _clearFields(); // Limpia los campos al cambiar el tipo
-    // }),
+ 
 
 onChanged: (value) {
   setState(() {
@@ -483,7 +474,6 @@ void _clearFields() {
     );
   }
 
-
 Widget _buildNumberField() {
   return TextFormField(
     controller: _numberCiController, // Asegúrate de vincular el controlador
@@ -491,33 +481,18 @@ Widget _buildNumberField() {
     onSaved: (value) => _numberCi = int.tryParse(value ?? ''),
     inputFormatters: [
       FilteringTextInputFormatter.digitsOnly,
+      LengthLimitingTextInputFormatter(8), // Limitar a 8 caracteres
     ],
     keyboardType: TextInputType.number,
+    validator: (value) {
+      if (value == null || value.length < 7 || value.length > 8) {
+        return 'Por favor, ingrese un número entre 7 y 8 dígitos';
+      }
+      return null;
+    },
   );
 }
 
-
-  // Widget _buildReceiptNField() {
-  //   return _buildTextField(
-  //     'N° Comprobante',
-  //     (value) => _receiptN = int.tryParse(value ?? ''),
-  //     inputFormatters: [
-  //       FilteringTextInputFormatter.digitsOnly,
-  //     ], // Permitir solo dígitos
-  //     keyboardType: TextInputType.number, // Teclado numérico
-  //   );
-  // }
-
-  // Widget _buildSkyField() {
-  //   return _buildTextField(
-  //     'N° Sky',
-  //     (value) => _sky = int.tryParse(value ?? ''),
-  //     inputFormatters: [
-  //       FilteringTextInputFormatter.digitsOnly,
-  //     ], // Permitir solo dígitos
-  //     keyboardType: TextInputType.number, // Teclado numérico
-  //   );
-  // }
 
 
   Widget _buildReceiptNField() {
@@ -606,90 +581,6 @@ Widget _buildSkyField() {
   }
 
   int _saveCounter = 0; // Contador para guardar documentos, inicia en 0
-
-  // Future<void> _saveDocument() async {
-  //   if (_formKey.currentState!.validate()) {
-  //     _formKey.currentState!.save();
-  //     try {
-  //       // Mostrar un diálogo con el indicador de progreso
-  //       showDialog(
-  //         context: context,
-  //         barrierDismissible: false, // Impedir cerrar el diálogo tocando fuera
-  //         builder: (BuildContext context) {
-  //           return const Center(child: CircularProgressIndicator());
-  //         },
-  //       );
-
-  //       // Verificar el tamaño de la imagen antes de enviarla
-  //       if (_frontImage != null && await _isImageSizeValid(_frontImage)) {
-  //         // Continuar con el guardado del documento
-  //         Document document = Document(
-  //           id: 0,
-  //           type: _selectedType,
-  //           numberCi: _numberCi?.toString(),
-  //           receiptN: _receiptN,
-  //           rifUrl: _rifUrl,
-  //           taxDomicile: _taxDomicile,
-  //           sky: _sky,
-  //           communeRegister: _communeRegister,
-  //           communityRif: _communityRif,
-  //           frontImage: _frontImage,
-  //           issuedAt: _issuedAt,
-  //           expiresAt: _expiresAt,
-  //           approved: false,
-  //           status: true,
-  //         );
-
-  //         await documentService.createDocument(
-  //           document,
-  //           widget.userId,
-  //           frontImageFile: _getFileFromPath(document.frontImage),
-  //         );
-
-  //         if (mounted) {
-  //           setState(() {
-  //             _saveCounter++;
-  //           });
-
-  //           // Verifica si el contador ha alcanzado 3 después del incremento
-  //           if (_saveCounter == 3) {
-  //             Provider.of<UserProvider>(
-  //               context,
-  //               listen: false,
-  //             ).setDocumentCreated(true);
-  //             _showCustomSnackBar(
-  //               context,
-  //               'Límite alcanzado. Puedes avanzar al siguiente paso.',
-  //               Colors.blue,
-  //             );
-  //           } else {
-  //             _showCustomSnackBar(
-  //               context,
-  //               'Documento guardado exitosamente',
-  //               Colors.green,
-  //             );
-  //           }
-  //           Navigator.of(context).pop(); // Cerrar el diálogo modal
-  //         }
-  //       } else {
-  //         Navigator.of(context).pop(); // Cerrar el diálogo modal
-  //         _showCustomSnackBar(
-  //           context,
-  //           'La imagen frontal supera los 2 MB.',
-  //           Colors.orange,
-  //         );
-  //       }
-  //     } catch (e) {
-  //       Navigator.of(context).pop(); // Cerrar el diálogo modal en caso de error
-  //       logger.e('Error al guardar el documento: $e');
-  //       _showCustomSnackBar(
-  //         context,
-  //         'Error al guardar el documento: $e',
-  //         Colors.red,
-  //       );
-  //     }
-  //   }
-  // }
 
   Future<void> _saveDocument() async {
   if (_formKey.currentState!.validate()) {
