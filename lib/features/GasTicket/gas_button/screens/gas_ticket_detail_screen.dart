@@ -3,7 +3,7 @@ import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
 import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';  // Asegúrate de importar el paquete correcto
 import 'package:intl/intl.dart';
-import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
+
 class TicketDetailsDrawer extends StatefulWidget {
   final AnimationController controller;
   final GasTicket? selectedTicket;
@@ -17,10 +17,10 @@ class TicketDetailsDrawer extends StatefulWidget {
   });
 
   @override
-  _TicketDetailsDrawerState createState() => _TicketDetailsDrawerState();
+  TicketDetailsDrawerState createState() => TicketDetailsDrawerState();
 }
 
-class _TicketDetailsDrawerState extends State<TicketDetailsDrawer> {
+class TicketDetailsDrawerState extends State<TicketDetailsDrawer> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(

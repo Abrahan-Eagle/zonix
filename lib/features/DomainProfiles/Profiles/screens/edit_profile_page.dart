@@ -22,7 +22,6 @@ class EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _dateController = TextEditingController();
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  String _mlResult = 'No se han detectado rostros.';
   bool _isDetecting = false;
 
   // Opciones para el DropdownButtonFormField

@@ -53,18 +53,35 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
     super.dispose();
   }
 
-  // Future<void> loadCountries() async {
-  //   try {
-  //     final data = await _addressService.fetchCountries();
-  //     setState(() {
-  //       countries = data;
-  //     });
-  //   } catch (e) {
-  //     _showError('Error al cargar países: $e');
-  //   }
-  // }
+//   Future<void> loadCountries() async {
+//   try {
+//     final data = await _addressService.fetchCountries();
+//     setState(() {
+//       countries = data;
+//     });
 
-  Future<void> loadCountries() async {
+//     if (countries.isNotEmpty) {
+//       // Seleccionar el país predeterminado (por ejemplo, el primer país o uno específico)
+//       final defaultCountry = countries.firstWhere(
+//         (country) => country.name == "Venezuela", // Cambia el nombre del país según necesites
+//         orElse: () => countries.first, // Si no encuentra, selecciona el primero
+//       );
+//       setState(() {
+//         selectedCountry = defaultCountry;
+//       });
+
+//       // Cargar los estados del país seleccionado automáticamente
+//       if (defaultCountry != null) {
+//         await loadStates(defaultCountry.id);
+//       }
+//     }
+//   } catch (e) {
+//     _showError('Error al cargar países: $e');
+//   }
+// }
+
+
+Future<void> loadCountries() async {
   try {
     final data = await _addressService.fetchCountries();
     setState(() {
@@ -74,22 +91,22 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
     if (countries.isNotEmpty) {
       // Seleccionar el país predeterminado (por ejemplo, el primer país o uno específico)
       final defaultCountry = countries.firstWhere(
-        (country) => country.name == "Venezuela", // Cambia el nombre del país según necesites
-        orElse: () => countries.first, // Si no encuentra, selecciona el primero
+        (country) => country.name == "Venezuela",
+        orElse: () => countries.first, // Si no encuentra "Venezuela", usa el primer país
       );
+
       setState(() {
         selectedCountry = defaultCountry;
       });
 
       // Cargar los estados del país seleccionado automáticamente
-      if (defaultCountry != null) {
-        await loadStates(defaultCountry.id);
-      }
+      await loadStates(defaultCountry.id);
     }
   } catch (e) {
     _showError('Error al cargar países: $e');
   }
 }
+
 
 
   Future<void> loadStates(int countryId) async {

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:zonix/features/GasTicket/dispatch_ticket_button/api/dispatch_ticket_service.dart';
