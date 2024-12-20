@@ -56,6 +56,10 @@ class EmailService {
   }
 Future<void> updateEmail(int id, Email email) async {
   final token = await _getToken();
+
+    logger.i('Solicitud de actualización recibida para el correo ID: ${email.id}');
+
+    
   
   if (token == null) throw Exception('Token no encontrado.');
 
@@ -69,6 +73,7 @@ Future<void> updateEmail(int id, Email email) async {
   );
 
   if (response.statusCode != 200) {
+    logger.i('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++: ${response.statusCode} ${response.body}');
     throw Exception('Error al actualizar correo: ${response.body}');
   }
 }

@@ -4,6 +4,8 @@ import '../api/email_service.dart';
 import 'package:flutter_svg/flutter_svg.dart'; 
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';
+final logger = Logger();
 
 class CreateEmailScreen extends StatefulWidget {
   final int userId;
@@ -18,6 +20,13 @@ class CreateEmailScreenState extends State<CreateEmailScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final EmailService _emailService = EmailService();
+
+  @override
+    void initState() {
+      super.initState();
+      logger.i('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++wUserId recibido en CreateEmailScreen: ${widget.userId}');
+    }
+
 
   @override
   Widget build(BuildContext context) {

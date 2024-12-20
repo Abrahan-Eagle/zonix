@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/email.dart';
 import '../api/email_service.dart';
 import '../screens/create_email_screen.dart';
+import 'package:logger/logger.dart';
+final logger = Logger();
+
 
 class EmailListScreen extends StatefulWidget {
   final int userId;
@@ -20,6 +23,7 @@ class EmailListScreenState extends State<EmailListScreen> {
   @override
   void initState() {
     super.initState();
+     logger.i('=======================================================UserId recibido: ${widget.userId}');
     _emails = _emailService.fetchEmails(widget.userId);
   }
 
