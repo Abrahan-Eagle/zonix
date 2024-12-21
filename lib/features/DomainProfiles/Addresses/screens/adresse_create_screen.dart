@@ -8,6 +8,8 @@ import 'package:geolocator/geolocator.dart'; // Importa la clase Position
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+
 
 final logger = Logger();
 class RegisterAddressScreen extends StatefulWidget {
@@ -52,33 +54,6 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen> {
     _postalCodeController.dispose();
     super.dispose();
   }
-
-//   Future<void> loadCountries() async {
-//   try {
-//     final data = await _addressService.fetchCountries();
-//     setState(() {
-//       countries = data;
-//     });
-
-//     if (countries.isNotEmpty) {
-//       // Seleccionar el país predeterminado (por ejemplo, el primer país o uno específico)
-//       final defaultCountry = countries.firstWhere(
-//         (country) => country.name == "Venezuela", // Cambia el nombre del país según necesites
-//         orElse: () => countries.first, // Si no encuentra, selecciona el primero
-//       );
-//       setState(() {
-//         selectedCountry = defaultCountry;
-//       });
-
-//       // Cargar los estados del país seleccionado automáticamente
-//       if (defaultCountry != null) {
-//         await loadStates(defaultCountry.id);
-//       }
-//     }
-//   } catch (e) {
-//     _showError('Error al cargar países: $e');
-//   }
-// }
 
 
 Future<void> loadCountries() async {
@@ -157,7 +132,7 @@ Future<void> loadCountries() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registrar Dirección'),
+        // title: const Text('Registrar Dirección'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -186,9 +161,15 @@ Future<void> loadCountries() async {
                   const SizedBox(height: 16.0),
                   if (selectedState != null) _buildCityDropdown(),
                   const SizedBox(height: 16.0),
-                  _buildTextField(_streetController, 'Dirección', 'Por favor ingresa la Dirección'),
+                  // _buildTextField(_streetController, 'Dirección', 'Por favor ingresa la Dirección'),
+
+                  _buildTextField(_streetController, 'Dirección', 'Por favor ingresa la Dirección', minLength: 10, maxLength: 100, ),
+
                   const SizedBox(height: 16.0),
-                  _buildTextField(_houseNumberController, 'N° casa', 'Por favor ingresa el número de la casa'),
+                  // _buildTextField(_houseNumberController, 'N° casa', 'Por favor ingresa el número de la casa'),
+
+                  _buildTextField(_houseNumberController, 'N° casa', 'Por favor ingresa el número de la casa', minLength: 1, maxLength: 10, ),
+
                   const SizedBox(height: 16.0),
                   _buildPostalCodeField(),
                   const SizedBox(height: 200.0),
@@ -288,38 +269,90 @@ Future<void> loadCountries() async {
     );
   }
 
-  TextFormField _buildPostalCodeField() {
-    return TextFormField(
-      controller: _postalCodeController,
-      keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        labelText: 'Cód. Postal',
-        border: OutlineInputBorder(),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor ingresa el código postal';
-        }
-        return null;
-      },
-    );
-  }
+  // TextFormField _buildPostalCodeField() {
+  //   return TextFormField(
+  //     controller: _postalCodeController,
+  //     keyboardType: TextInputType.number,
+  //     decoration: const InputDecoration(
+  //       labelText: 'Cód. Postal',
+  //       border: OutlineInputBorder(),
+  //     ),
+  //     validator: (value) {
+  //       if (value == null || value.isEmpty) {
+  //         return 'Por favor ingresa el código postal';
+  //       }
+  //       return null;
+  //     },
+  //   );
+  // }
 
-  TextFormField _buildTextField(TextEditingController controller, String label, String errorMessage) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return errorMessage;
-        }
-        return null;
-      },
-    );
-  }
+
+TextFormField _buildPostalCodeField() {
+  return TextFormField(
+    controller: _postalCodeController,
+    keyboardType: TextInputType.number,
+    decoration: const InputDecoration(
+      labelText: 'Cód. Postal',
+      border: OutlineInputBorder(),
+    ),
+    inputFormatters: [
+      LengthLimitingTextInputFormatter(5), // Limita a 5 caracteres.
+      FilteringTextInputFormatter.digitsOnly, // Solo permite números.
+    ],
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return 'Por favor ingresa el código postal';
+      }
+      if (value.length != 5) { // Valida exactamente 5 caracteres.
+        return 'El código postal debe tener 5 dígitos';
+      }
+      return null;
+    },
+  );
+}
+
+  // TextFormField _buildTextField(TextEditingController controller, String label, String errorMessage) {
+  //   return TextFormField(
+  //     controller: controller,
+  //     decoration: InputDecoration(
+  //       labelText: label,
+  //       border: const OutlineInputBorder(),
+  //     ),
+  //     validator: (value) {
+  //       if (value == null || value.isEmpty) {
+  //         return errorMessage;
+  //       }
+  //       return null;
+  //     },
+  //   );
+  // }
+
+
+  TextFormField _buildTextField(TextEditingController controller, String label, String errorMessage, {int? minLength, int? maxLength}) {
+  return TextFormField(
+    controller: controller,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+    ),
+    inputFormatters: [
+      if (maxLength != null) LengthLimitingTextInputFormatter(maxLength), // Limita el número máximo de caracteres
+    ],
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return errorMessage;
+      }
+      if (minLength != null && value.length < minLength) {
+        return 'Debe tener al menos $minLength caracteres';
+      }
+      if (maxLength != null && value.length > maxLength) {
+        return 'No puede tener más de $maxLength caracteres';
+      }
+      return null;
+    },
+  );
+}
+
 
   Future<void> _createAddress() async {
 
