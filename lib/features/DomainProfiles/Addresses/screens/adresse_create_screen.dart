@@ -287,6 +287,30 @@ Future<void> loadCountries() async {
   // }
 
 
+// TextFormField _buildPostalCodeField() {
+//   return TextFormField(
+//     controller: _postalCodeController,
+//     keyboardType: TextInputType.number,
+//     decoration: const InputDecoration(
+//       labelText: 'Cód. Postal',
+//       border: OutlineInputBorder(),
+//     ),
+//     inputFormatters: [
+//       LengthLimitingTextInputFormatter(5), // Limita a 5 caracteres.
+//       FilteringTextInputFormatter.digitsOnly, // Solo permite números.
+//     ],
+//     validator: (value) {
+//       if (value == null || value.isEmpty) {
+//         return 'Por favor ingresa el código postal';
+//       }
+//       if (value.length != 5) { // Valida exactamente 5 caracteres.
+//         return 'El código postal debe tener 5 dígitos';
+//       }
+//       return null;
+//     },
+//   );
+// }
+
 TextFormField _buildPostalCodeField() {
   return TextFormField(
     controller: _postalCodeController,
@@ -303,13 +327,14 @@ TextFormField _buildPostalCodeField() {
       if (value == null || value.isEmpty) {
         return 'Por favor ingresa el código postal';
       }
-      if (value.length != 5) { // Valida exactamente 5 caracteres.
-        return 'El código postal debe tener 5 dígitos';
+      if (value.length < 4 || value.length > 5) { // Valida entre 4 y 5 caracteres.
+        return 'El código postal debe tener entre 4 y 5 dígitos';
       }
       return null;
     },
   );
 }
+
 
   // TextFormField _buildTextField(TextEditingController controller, String label, String errorMessage) {
   //   return TextFormField(
