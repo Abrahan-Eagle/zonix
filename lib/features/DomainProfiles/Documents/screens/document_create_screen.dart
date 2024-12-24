@@ -410,10 +410,7 @@ void _clearFields() {
   Widget _buildAssociationFields() {
     return Column(
       children: [
-        _buildTextField(
-          'Registro Comunal',
-          (value) => _communeRegister = value,
-        ),
+        _buildTextField('Registro Comunal', (value) => _communeRegister = value,),
         _buildTextField('RIF Comunitario', (value) => _communityRif = value),
         _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
         _buildCommonFields(),
@@ -505,13 +502,37 @@ Widget _buildNumberField() {
   );
 }
 
+// Widget _buildSkyField() {
+//   return TextFormField(
+//     controller: _skyController,
+//     decoration: const InputDecoration(labelText: 'N° Sky'),
+//     onSaved: (value) => _sky = int.tryParse(value ?? ''),
+//     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+//     keyboardType: TextInputType.number,
+//   );
+// }
+
+
 Widget _buildSkyField() {
   return TextFormField(
     controller: _skyController,
-    decoration: const InputDecoration(labelText: 'N° Sky'),
+    decoration: const InputDecoration(
+      labelText: 'N° Sky',
+      errorText: null, // Para mostrar el mensaje de error personalizado
+    ),
     onSaved: (value) => _sky = int.tryParse(value ?? ''),
     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
     keyboardType: TextInputType.number,
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return 'Este campo es obligatorio';
+      }
+      // Verificar si el número tiene entre 9 y 11 dígitos
+      if (value.length < 9 || value.length > 11) {
+        return 'El número debe tener entre 9 y 11 dígitos';
+      }
+      return null; // Validación correcta
+    },
   );
 }
 
