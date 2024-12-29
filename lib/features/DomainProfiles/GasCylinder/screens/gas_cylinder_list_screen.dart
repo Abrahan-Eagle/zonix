@@ -3,7 +3,9 @@ import 'package:zonix/features/DomainProfiles/GasCylinder/api/gas_cylinder_servi
 import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/screens/create_gas_cylinder_screen.dart';
 import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_detail_screen.dart'; // Importar la pantalla de detalles
-
+import 'package:zonix/features/DomainProfiles/GasCylinder/providers/qr_gas_cylinder.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 class GasCylinderListScreen extends StatefulWidget {
   final int userId;
   final bool statusId;
@@ -43,7 +45,7 @@ class _GasCylinderListScreenState extends State<GasCylinderListScreen> {
       appBar: AppBar(
         title: const Text('Bombonas de Gas'),
       ),
-      body: LayoutBuilder(
+     body: LayoutBuilder(
         builder: (context, constraints) {
           return FutureBuilder<List<GasCylinder>>(
             future: _fetchCylinders(),
@@ -75,16 +77,33 @@ class _GasCylinderListScreenState extends State<GasCylinderListScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GasCylinderDetailScreen(cylinder: cylinder),
+                          builder: (context) =>
+                              GasCylinderDetailScreen(cylinder: cylinder),
                         ),
                       );
                     },
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        // Navegar a la pantalla de edición (opcional)
-                      },
-                    ),
+                    trailing: cylinder.approved
+                        ? IconButton(
+                            icon: const Icon(Icons.qr_code),
+                            onPressed: () async {
+                              try {
+                                // Generar el PDF con el QR
+                                final pdfBytes =
+                                    await generatePDFWithQR(cylinder.gasCylinderCode);
+
+                                // Mostrar el PDF en una vista previa
+                                await Printing.layoutPdf(
+                                  onLayout: (PdfPageFormat format) async => pdfBytes,
+                                );
+                              } catch (e) {
+                                // Manejar errores
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: ${e.toString()}')),
+                                );
+                              }
+                            },
+                          )
+                        : null,
                   );
                 },
               );
@@ -92,6 +111,7 @@ class _GasCylinderListScreenState extends State<GasCylinderListScreen> {
           );
         },
       ),
+
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () => _navigateToCreateCylinder(context),
       //   child: const Icon(Icons.add),

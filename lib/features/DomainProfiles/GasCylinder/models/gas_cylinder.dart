@@ -6,6 +6,7 @@ class GasCylinder {
   final DateTime? manufacturingDate;
   final bool approved;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
   final int? companySupplierId;
   final String? photoGasCylinder; // Nuevo campo agregado
 
@@ -17,6 +18,7 @@ class GasCylinder {
     this.manufacturingDate,
     this.approved = false,
     this.createdAt,
+    this.updatedAt,
     this.companySupplierId,
     this.photoGasCylinder, // Inicialización del nuevo campo
   });
@@ -34,6 +36,9 @@ class GasCylinder {
       approved: json['approved'] == 1 || json['approved'] == true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
       companySupplierId: json['company_supplier_id'],
       photoGasCylinder: json['photo_gas_cylinder'], // Asignación del nuevo campo
