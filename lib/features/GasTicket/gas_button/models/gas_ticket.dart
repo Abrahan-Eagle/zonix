@@ -10,6 +10,11 @@ class GasTicket {
   final String queuePosition;
   final String timePosition;
   final String qrCode;
+  final int stationId; 
+  // final int operatorCodeId;
+  final String operatorName;
+  final String stationCode;
+
 
   // Datos de perfil
   final String firstName;
@@ -72,6 +77,11 @@ class GasTicket {
     required this.cylinderWeight,
     required this.gasCylinderPhoto,
     required this.manufacturingDate,
+    required this.stationId,
+    // required this.operatorCodeId,
+    required this.operatorName,  
+    required this.stationCode,
+    
   });
 
   factory GasTicket.fromJson(Map<String, dynamic> json) {
@@ -97,6 +107,11 @@ class GasTicket {
       maritalStatus: json['profile']['maritalStatus'],
       sex: json['profile']['sex'],
       profileStatus: json['profile']['status'],
+      stationId: json['profile']['station_id'],
+      // operatorCodeId: json['profile']['operator_code_id'], 
+      operatorName: json['profile']['phones'][0]['operator_code']['name'], 
+      stationCode: json['station']['code'],
+
 
       // Datos del usuario
       userName: json['profile']['user']['name'],
@@ -119,47 +134,3 @@ class GasTicket {
     );
   }
 }
-
-
-// // lib/features/GasTicket/models/gas_ticket.dart
-// class GasTicket {
-//   final int id;
-//   final int profileId;
-//   final int gasCylindersId;
-//   final String status;
-//   final String reservedDate;
-//   final String appointmentDate;
-//   final String expiryDate;
-//   final String queuePosition;
-//   final String timePosition;
-//   final String qrCode;
-  
-
-//   GasTicket({
-//     required this.id,
-//     required this.profileId,
-//     required this.gasCylindersId,
-//     required this.status,
-//     required this.reservedDate,
-//     required this.appointmentDate,
-//     required this.expiryDate,
-//     required this.queuePosition,
-//     required this.timePosition,
-//     required this.qrCode,
-//   });
-
-//   factory GasTicket.fromJson(Map<String, dynamic> json) {
-//     return GasTicket(
-//       id: json['id'],
-//       profileId: json['profile_id'],
-//       gasCylindersId: json['gas_cylinders_id'],
-//       status: json['status'],
-//       reservedDate: json['reserved_date'],
-//       appointmentDate: json['appointment_date'],
-//       expiryDate: json['expiry_date'],
-//       queuePosition: json['queue_position'].toString(),
-//       timePosition: json['time_position'],
-//       qrCode: json['qr_code'],
-//     );
-//   }
-// }
