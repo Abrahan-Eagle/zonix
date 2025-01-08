@@ -290,7 +290,10 @@ class TicketDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${ticket.operatorName} - ${ticket.phoneNumbers.join(', ')}',
+                        // '${ticket.operatorName} - ${ticket.phoneNumbers.join(', ')}',
+                       '${ticket.operatorName.join(', ')} - ${ticket.phoneNumbers.join(', ')}',
+
+                       
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           color:

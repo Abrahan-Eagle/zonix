@@ -12,7 +12,8 @@ class GasTicket {
   final String qrCode;
   final int stationId; 
   // final int operatorCodeId;
-  final String operatorName;
+  // final String operatorName;
+  final List<String> operatorName;
   final String stationCode;
 
 
@@ -109,7 +110,17 @@ class GasTicket {
       profileStatus: json['profile']['status'],
       stationId: json['profile']['station_id'],
       // operatorCodeId: json['profile']['operator_code_id'], 
-      operatorName: json['profile']['phones'][0]['operator_code']['name'], 
+      // operatorName: json['profile']['phones'][0]['operator_code']['name'], 
+      // operatorName: json['profile']['phones']['operator_code']['name'], 
+
+      operatorName: List<String>.from(
+        json['profile']['phones']
+            .where((phone) => phone.containsKey('is_primary') && phone['is_primary'] == 1)
+            .map((phone) => phone['operator_code']['name']) // Accede al nombre del operador
+      ),
+
+          
+     
       stationCode: json['station']['code'],
 
 
@@ -119,7 +130,11 @@ class GasTicket {
       userProfilePic: json['profile']['user']['profile_pic'],
 
       // Datos de teléfono, emails, documentos y direcciones
-      phoneNumbers: List<String>.from(json['profile']['phones'].map((phone) => phone['number'])),
+      // phoneNumbers: List<String>.from(json['profile']['phones'].map((phone) => phone['number'])),
+
+
+      phoneNumbers: List<String>.from(json['profile']['phones'].where((phone) => phone.containsKey('is_primary') && phone['is_primary'] == 1).map((phone) => phone['number'])),
+
       emailAddresses: List<String>.from(json['profile']['emails'].map((email) => email['email'])),
       documentImages: List<String>.from(json['profile']['documents'].map((document) => document['front_image'])),
       addresses: List<String>.from(json['profile']['addresses'].map((address) => address['street'])),
