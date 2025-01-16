@@ -37,6 +37,8 @@ class GasTicket {
   final List<String> phoneNumbers;
   final List<String> emailAddresses;
   final List<String> documentImages;
+  final List<String> documentType;
+  final List<String> documentNumberCi;
   final List<String> addresses;
   final String gasCylinderCode;
   final String cylinderQuantity;
@@ -71,6 +73,8 @@ class GasTicket {
     required this.phoneNumbers,
     required this.emailAddresses,
     required this.documentImages,
+    required this.documentType,
+    required this.documentNumberCi,
     required this.addresses,
     required this.gasCylinderCode,
     required this.cylinderQuantity,
@@ -86,6 +90,14 @@ class GasTicket {
   });
 
   factory GasTicket.fromJson(Map<String, dynamic> json) {
+      var ciDocuments = json['profile']['documents']
+      .where((document) => document['type'] == 'ci')
+      .toList();
+
+      List<String> frontImageList = List<String>.from(ciDocuments.map((document) => document['front_image'] ?? ''));
+      List<String> typeList = List<String>.from(ciDocuments.map((document) => document['type'] ?? ''));
+      List<String> numberCiList = List<String>.from(ciDocuments.where((document) => document.containsKey('number_ci') && document['number_ci'] != null).map((document) => document['number_ci']?.toString() ?? ''));
+
     return GasTicket(
       id: json['id'],
       profileId: json['profile_id'],
@@ -109,34 +121,23 @@ class GasTicket {
       sex: json['profile']['sex'],
       profileStatus: json['profile']['status'],
       stationId: json['profile']['station_id'],
-      // operatorCodeId: json['profile']['operator_code_id'], 
-      // operatorName: json['profile']['phones'][0]['operator_code']['name'], 
-      // operatorName: json['profile']['phones']['operator_code']['name'], 
+   
+      operatorName: List<String>.from(json['profile']['phones'].where((phone) => phone.containsKey('is_primary') && phone['is_primary'] == 1).map((phone) => phone['operator_code']['name'])),
 
-      operatorName: List<String>.from(
-        json['profile']['phones']
-            .where((phone) => phone.containsKey('is_primary') && phone['is_primary'] == 1)
-            .map((phone) => phone['operator_code']['name']) // Accede al nombre del operador
-      ),
-
-          
-     
       stationCode: json['station']['code'],
-
 
       // Datos del usuario
       userName: json['profile']['user']['name'],
       userEmail: json['profile']['user']['email'],
       userProfilePic: json['profile']['user']['profile_pic'],
 
-      // Datos de teléfono, emails, documentos y direcciones
-      // phoneNumbers: List<String>.from(json['profile']['phones'].map((phone) => phone['number'])),
-
-
       phoneNumbers: List<String>.from(json['profile']['phones'].where((phone) => phone.containsKey('is_primary') && phone['is_primary'] == 1).map((phone) => phone['number'])),
 
       emailAddresses: List<String>.from(json['profile']['emails'].map((email) => email['email'])),
-      documentImages: List<String>.from(json['profile']['documents'].map((document) => document['front_image'])),
+      
+      documentNumberCi: numberCiList,  // Almacenar los números de CI como un String (puedes cambiar a List si prefieres)
+      documentImages: frontImageList,
+      documentType: typeList,
       addresses: List<String>.from(json['profile']['addresses'].map((address) => address['street'])),
       
       // Datos de bombonas de gas
