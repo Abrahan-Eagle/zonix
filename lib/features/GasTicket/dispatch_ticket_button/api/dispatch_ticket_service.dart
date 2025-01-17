@@ -19,33 +19,6 @@ class ApiService {
     return await storage.read(key: 'token');
   }
 
-  // Escanear cilindro
-  // Future<List<dynamic>> scanCylinder(String qrCodeId) async {
-  //   logger.i('Escaneando cilindro: $qrCodeId');
-  //   String? token = await _getToken();
-  //   if (token == null) {
-  //     throw Exception('Token no encontrado. Por favor, inicia sesión.');
-  //   }
-
-  //   final response = await http.post(
-  //     Uri.parse('$apiUrl/$qrCodeId/qr-code'),
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': 'Bearer $token',
-  //     },
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     logger.i('Respuesta del cilindro: ${response.body}');
-  //     try {
-  //       return jsonDecode(response.body) as List<dynamic>;
-  //     } catch (e) {
-  //       throw Exception('Error al procesar la respuesta del servidor como lista: $e');
-  //     }
-  //   } else {
-  //     throw Exception('Error al procesar el cilindro: ${response.statusCode} ${response.body}');
-  //   }
-  // }
 
 
 // Escanear cilindro
