@@ -124,6 +124,8 @@ flutter:
     - assets/onboarding/undraw_outer_space_re_u9vd.svg
     - assets/images/1.png
     - assets/images/2.png 
+    - assets/images/profile_photos/16a4f66ff40d30c7a8fa1fe44b1e3c3e.jpg
+    - assets/images/profile_photos/HD-wallpaper-floating-in-asteroids-astronaut-asteroid-belt-space.jpg
     - .env
     - assets/fonts/Roboto-Regular.ttf
 
