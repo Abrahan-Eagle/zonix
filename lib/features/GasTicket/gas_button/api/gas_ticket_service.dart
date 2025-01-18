@@ -80,7 +80,8 @@ Future<List<GasTicket>> fetchGasTickets(int userId) async {
 
   
   // Crear un nuevo ticket con autenticación
-  Future<void> createGasTicket(int profileId, int cylinderId, bool isExternal, int? selectedStationId) async {
+  Future<void> createGasTicket(int userId, int cylinderId, bool isExternal, int? selectedStationId) async {
+
     String? token = await _getToken();
 
     if (token == null) {
@@ -94,7 +95,7 @@ Future<List<GasTicket>> fetchGasTickets(int userId) async {
         'Authorization': 'Bearer $token', // Envío del token
       },
       body: jsonEncode({
-        'profile_id': profileId,
+        'user_id': userId,
         'gas_cylinders_id': cylinderId,
         'is_external': isExternal,
         'station_id': selectedStationId,
