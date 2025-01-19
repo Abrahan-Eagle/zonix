@@ -225,79 +225,158 @@ class CreateProfilePageState extends State<CreateProfilePage> {
     }
   }
 
-  Future<void> _createProfile() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+  // Future<void> _createProfile() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     _formKey.currentState!.save();
 
-      // Verificar si la imagen ha sido tomada
-      if (_imageFile == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Por favor, tome una foto.',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.fixed,
-          ),
-        );
-        return; // No continuar si no hay imagen
-      }
+  //     // Verificar si la imagen ha sido tomada
+  //     if (_imageFile == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text(
+  //             'Por favor, tome una foto.',
+  //             style: TextStyle(color: Colors.white),
+  //           ),
+  //           backgroundColor: Colors.red,
+  //           behavior: SnackBarBehavior.fixed,
+  //         ),
+  //       );
+  //       return; // No continuar si no hay imagen
+  //     }
 
-      // Mostrar el indicador de progreso
-      showDialog(
-        context: context,
-        barrierDismissible:
-            false, // Evita que se cierre al tocar fuera del cuadro
-        builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator());
-        },
-      );
+  //     // Mostrar el indicador de progreso
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible:
+  //           false, // Evita que se cierre al tocar fuera del cuadro
+  //       builder: (BuildContext context) {
+  //         return const Center(child: CircularProgressIndicator());
+  //       },
+  //     );
 
-      try {
-        await ProfileService().createProfile(
-          _profile,
-          widget.userId,
-          imageFile: _imageFile,
-        );
-        context.read<UserProvider>().setProfileCreated(true);
+  //     try {
+  //       await ProfileService().createProfile(
+  //         _profile,
+  //         widget.userId,
+  //         imageFile: _imageFile,
+  //       );
+  //       context.read<UserProvider>().setProfileCreated(true);
 
-        // Mostrar el SnackBar de éxito
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Fue registrado exitosamente.',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.fixed,
-            action: SnackBarAction(label: 'OK', onPressed: () {}),
-          ),
-        );
+  //       // Mostrar el SnackBar de éxito
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: const Text(
+  //             'Fue registrado exitosamente.',
+  //             style: TextStyle(color: Colors.white),
+  //           ),
+  //           backgroundColor: Colors.green,
+  //           behavior: SnackBarBehavior.fixed,
+  //           action: SnackBarAction(label: 'OK', onPressed: () {}),
+  //         ),
+  //       );
 
-        // Verificar si el widget aún está montado
-        if (mounted) {
-          Navigator.of(context).pop(); // Cerrar el indicador de progreso
-          Navigator.of(context).pop(); // Regresar a la pantalla anterior
-        }
-      } catch (e) {
-        if (mounted) {
-          Navigator.of(context).pop(); // Cerrar el indicador de progreso
+  //       // Verificar si el widget aún está montado
+  //       if (mounted) {
+  //         Navigator.of(context).pop(); // Cerrar el indicador de progreso
+  //         Navigator.of(context).pop(); // Regresar a la pantalla anterior
+  //       }
+  //     } catch (e) {
+  //       if (mounted) {
+  //         Navigator.of(context).pop(); // Cerrar el indicador de progreso
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(
+  //               'Error al crear perfil: $e',
+  //               style: const TextStyle(color: Colors.white),
+  //             ),
+  //             backgroundColor: Colors.red,
+  //             behavior: SnackBarBehavior.fixed,
+  //             action: SnackBarAction(label: 'OK', onPressed: () {}),
+  //           ),
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
+
+
+      Future<void> _createProfile() async {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+
+        // Verificar si la imagen ha sido tomada
+        if (_imageFile == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text(
-                'Error al crear perfil: $e',
-                style: const TextStyle(color: Colors.white),
+                'Por favor, tome una foto.',
+                style: TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.fixed,
-              action: SnackBarAction(label: 'OK', onPressed: () {}),
             ),
           );
+          return; // No continuar si no hay imagen
+        }
+
+        // Mostrar el indicador de progreso
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Evita que se cierre al tocar fuera del cuadro
+          builder: (BuildContext context) {
+            return const Center(child: CircularProgressIndicator());
+          },
+        );
+
+        try {
+          // Intentar crear el perfil
+          await ProfileService().createProfile(
+            _profile,
+            widget.userId,
+            imageFile: _imageFile,
+          );
+
+          // Perfil creado exitosamente: actualizar el estado
+          if (mounted) {
+            context.read<UserProvider>().setProfileCreated(true);
+
+            // Mostrar el SnackBar de éxito
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Fue registrado exitosamente.',
+                  style: TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.fixed,
+                action: SnackBarAction(label: 'OK', onPressed: () {}),
+              ),
+            );
+
+            // Cerrar el indicador de progreso y regresar a la pantalla anterior
+            Navigator.of(context).pop(); // Cerrar el indicador de progreso
+            Navigator.of(context).pop(); // Regresar a la pantalla anterior
+          }
+        } catch (e) {
+          // Manejar errores
+          if (mounted) {
+            Navigator.of(context).pop(); // Cerrar el indicador de progreso
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Error al crear perfil: $e',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.fixed,
+                action: SnackBarAction(label: 'OK', onPressed: () {}),
+              ),
+            );
+          }
         }
       }
     }
-  }
+
 
   @override
   Widget build(BuildContext context) {
